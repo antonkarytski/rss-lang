@@ -7,13 +7,11 @@ import BookPage from "./pages/BookPage/BookPage"
 import GamesPage from "./pages/GamesPage"
 import Sprint from "./pages/Games/Sprint"
 import AudioCall from "./pages/Games/Audiocall"
-import Savannah from "./pages/Games/Savannah"
+import Savannah from "./components/Games/Savannah/Savannah"
+import GamePageSavannah from "./components/Games/Savannah/GamePage"
 import StatisticPage from "./pages/StatisticPage"
 import PuzzleGame from "./pages/Games/PuzzleGame"
-import classesCss from "./styles/App.module.scss"
 import "./styles/effect.scss"
-
-
 
 function App(){
 
@@ -31,8 +29,9 @@ function App(){
 				<Switch location={location}>
 					<Route path="/book"><BookPage/></Route>
 					<Route path="/statistic"><StatisticPage/></Route>
-					<Route path="/games/savannah"><Savannah/></Route>
-					<Route path="/games/audiocall"><AudioCall/></Route>
+                    <Route path="/games/savannah" exact component={Savannah}/>
+                    <Route path="/games/savannah/game" component={GamePageSavannah}/>
+                    <Route path="/games/audiocall"><AudioCall/></Route>
 					<Route path="/games/sprint"><Sprint/></Route>
 					<Route path="/games/puzzle"><PuzzleGame/></Route>
 					<Route path="/games" exact><GamesPage/></Route>
