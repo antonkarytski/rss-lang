@@ -20,7 +20,7 @@
 							<div class="bottom"></div>
 						</ul>
 					</div>
-					<div class="crystal"></div>
+					<div class="snake"></div>
 				</div>
 			</div>
 		</div>

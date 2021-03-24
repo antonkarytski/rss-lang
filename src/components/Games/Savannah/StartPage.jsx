@@ -5,6 +5,8 @@ import {setStatusGame} from '../../../redux/savannah/actions';
 import {makeStyles} from "@material-ui/core";
 import CloseIcon from '@material-ui/icons/Close';
 import {Grid} from "@material-ui/core";
+import background from "../../../assets/images/startSavannah.jpg";
+import StartModal from "../common/StartModal";
 
 const StartPage = () => {
     const classes = useStyles();
@@ -17,39 +19,53 @@ const StartPage = () => {
     }, [dispatch, history]);
 
     return (
-        <div className={classes.container}>
-            <Grid container justify="flex-end" >
-                <Link to="/">
-                    <CloseIcon/>
-                </Link>
+        <>
+            <img src={background} alt="savannah background" className={classes.backgroundImg}/>
+            <Grid container direction="column" justify="center" alignItems="center" className={classes.container}>
+                <Grid container justify="flex-end" className={classes.exitContainer}>
+                    <Link to="/">
+                        <CloseIcon/>
+                    </Link>
+                </Grid>
+                <StartModal title="Саванна"
+                            description="Тренировка Саванна развивает словарный запас. Выбирайте правильный
+                        перевод слова из предложенных."
+                            classes={{container: classes.container}}
+                            handleStart={handleStart}
+                            label="Начать">
+                </StartModal>
             </Grid>
-            <Grid container direction="column" justify="center" alignItems="center" >
-                <h2 className={classes.title}>Саванна</h2>
-                <div className={classes.description}>
-                    Тренировка Саванна развивает словарный запас. Выбирайте правильный
-                    перевод слова из предложенных.
-                </div>
-                    <button onClick={handleStart}>
-                        Начать
-                    </button>
-            </Grid>
-        </div>
+        </>
     );
 };
 const useStyles = makeStyles({
     container: {
         height: '100vh',
-        backgroundColor: '#f6f6f6',
+        position: 'relative',
     },
-    centerContainer: {
-
+    exitContainer: {
+        position: 'absolute',
+        padding: '1rem',
+        zIndex: 1,
+        top: 0,
+        "& a": {
+          "& svg": {
+            color: '#ffffff',
+            fontSize: '35px',
+          },
+            "&:active": {
+              transition: 'all .5 easy',
+                "& svg": {
+                    color: '#e0eed4',
+                },
+            },
+        },
     },
-    title: {
-
+    backgroundImg: {
+        position: 'absolute',
+        width: '100vw',
+        height: '100vh',
+        objectFit: 'cover',
     },
-    description: {
-
-    },
-
 });
 export default StartPage;

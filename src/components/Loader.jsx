@@ -18,9 +18,9 @@ const useStyles = makeStyles({
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        height: 'calc(100vh - 146px)',
+        height: '100vh',
         '& img': {
-            width: '5rem',
+            width: '3rem',
         },
     },
 });
