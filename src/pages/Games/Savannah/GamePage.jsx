@@ -6,34 +6,36 @@ import {useDispatch, useSelector} from "react-redux"
 import snake from "../../../assets/images/snake.svg"
 import {useWords} from "../../../hooks/hooks.words"
 import classNames from "classnames";
-import Loader from "../../Loader";
+import Loader from "../../../components/Loader";
 import background from "../../../assets/images/2.jpg";
 import CloseIcon from '@material-ui/icons/Close';
 import {Link} from "react-router-dom";
-import FavoriteIcon from '@material-ui/icons/Favorite';
 import {levelSelector} from "../../../redux/savannah/selectors";
 import Levels from "../common/Levels";
+import Statistics from "../common/Statistics";
+import Lives from "../common/Lives";
+import CloseButton from "../common/CloseButton";
 
 //const page = 1;
 
 let snakeSize = 0.6;
 
 const Savannah = () => {
-    const activeLevel = useSelector(levelSelector) ?? 1;
+    const activeLevel = useSelector(levelSelector);
     const dispatch = useDispatch();
     // const userId = useSelector(userIdSelector);
     // const token = useSelector(tokenSelector);
 
     const [answer, setAnswer] = useState('');
-    const [arrayWordsWithStatistics, setArrayWordsWithStatistics] = useState([]);
+    const [statisticsArr, setStatisticsArr] = useState([]);
     const [arrOfWords, setArrOfWords] = useState([]);
     const [btnClicked, setBtnClicked] = useState(false);
     const [gettingWords, setGettingWords] = useState(true);
     const [isExit, setIsExit] = useState(false);
     const [isGameOver, setIsGameOver] = useState(false);
     const [livesCount, setLivesCount] = useState(5);
-    const [numRightAnswers, setNumRightAnswers] = useState(0);
-    const [numWrongAnswers, setNumWrongAnswers] = useState(0);
+    const [rightAnswers, setrightAnswers] = useState(0);
+    const [wrongAnswers, setwrongAnswers] = useState(0);
     const [scaleSize, setScaleSize] = useState(snakeSize);
     //const [soundOn, setSoundOn] = useState(true);
     const [word, setWord] = useState('');
@@ -62,7 +64,7 @@ const Savannah = () => {
 
     useEffect(() => {
         const words = getWordsChunk(activeLevel - 1, 0);
-        //console.log(words);
+        console.log(words);
         //console.log(activeLevel);
 
         if (words !== "loading" && gettingWords && livesCount && wordCounter) {
@@ -70,7 +72,7 @@ const Savannah = () => {
             const randomNumberTwo = getRandomNumber(0, words.length - 1);
 
             const translatedWordId = words[randomNumberOne].id;
-            const wordInArrId = arrayWordsWithStatistics.find((word) => word.id === translatedWordId);
+            const wordInArrId = statisticsArr.find((word) => word.id === translatedWordId);
 
             const f1 = (randomNumber) => {
                 const newWordTranslation = words[randomNumber].wordTranslate;
@@ -93,10 +95,10 @@ const Savannah = () => {
         return () => {
             setGettingWords(false);
         };
-    }, [gettingWords, livesCount, wordCounter, getWordsChunk, arrayWordsWithStatistics, handleGameOver, activeLevel]);
+    }, [gettingWords, livesCount, wordCounter, getWordsChunk, statisticsArr, handleGameOver, activeLevel]);
 
     const updateStats = useCallback((isCorrect) => {
-        setArrayWordsWithStatistics([...arrayWordsWithStatistics, {
+        setStatisticsArr([...statisticsArr, {
             'word': word,
             'id': wordID,
             'audio': wordAudio,
@@ -104,7 +106,7 @@ const Savannah = () => {
             'translation': wordTranslation,
             'isCorrect': isCorrect,
         }]);
-    }, [word, wordID, wordAudio, wordTranscription, wordTranslation, arrayWordsWithStatistics]);
+    }, [word, wordID, wordAudio, wordTranscription, wordTranslation, statisticsArr]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -143,12 +145,12 @@ const Savannah = () => {
 
         if (correct) {
             setScaleSize(snakeSize += 0.02);
-            setNumRightAnswers(numRightAnswers + 1);
+            setrightAnswers(rightAnswers + 1);
         } else {
             setLivesCount(livesCount - 1);
-            setNumWrongAnswers(numWrongAnswers + 1);
+            setwrongAnswers(wrongAnswers + 1);
         }
-    }, [livesCount, updateStats, numWrongAnswers, wordCounter, numRightAnswers]);
+    }, [livesCount, updateStats, wrongAnswers, wordCounter, rightAnswers]);
 
     const refreshWordsOnClick = useCallback(() => {
         setTimeout(() => {
@@ -169,28 +171,32 @@ const Savannah = () => {
         <>
         {onLoading ? <Loader/> : (
             <Grid className={classes.container}>
-                {isGameOver ? (<div>results</div>) : false}
+                {isGameOver && (
+                    <Statistics
+                        statisticsArr={statisticsArr}
+                        rightAnswers={rightAnswers}
+                        wrongAnswers={wrongAnswers}
+                        toNewGame={HandleExit}
+                    />)}
 
-                <Grid container justify="space-between" alignItems="center">
-                    <Grid>
-                        <FavoriteIcon/>
-                        <FavoriteIcon/>
-                        <FavoriteIcon/>
-                        <FavoriteIcon/>
-                        <FavoriteIcon/>
+                {!isGameOver && (<Grid container justify="space-between" alignItems="center">
+                    <Grid item xs={4} >
+                        <Levels changeActiveLevel={changeLevel} currentLevel={activeLevel} />
                     </Grid>
-                    <Levels changeActiveLevel={changeLevel} currentLevel={activeLevel} />
-                    <Link to="/">
-                        <CloseIcon/>
-                    </Link>
-                </Grid>
+                    <Grid item xs={4} container justify="center">
+                        <Lives livesCount={livesCount} gameOver={handleGameOver}/>
+                    </Grid>
+                    <Grid item xs={4} container justify="flex-end">
+                        <CloseButton/>
+                    </Grid>
+                </Grid>)}
 
-                <Grid container
+                {!isGameOver && (<Grid container
                       direction="column"
                       justify="space-between"
                       alignItems="center"
                       className={classes.gameContainer}>
-                    {isGameOver ? <h2 className={classes.gameOver}>Game Over</h2> : null}
+
                     <div
                         className={classNames({
                             [classes.wrapperFalling]: true,
@@ -213,11 +219,11 @@ const Savannah = () => {
                                         checkAnswer(itemWord, wordTranslation);
                                         refreshWordsOnClick();
                                     }}
-                                    type="button"
-                                    className={classNames(
-                                        { 'wrong': btnClicked && itemWord !== wordTranslation },
-                                        { 'right': btnClicked && itemWord === wordTranslation },
-                                    )}
+                                    className={classNames({
+                                        [classes.wordButton]: true,
+                                        [classes.wrong]: btnClicked && itemWord !== wordTranslation,
+                                        [classes.right]: btnClicked && itemWord === wordTranslation,
+                                    })}
                                 >
                                     {(itemWord)}
                                 </button>
@@ -233,9 +239,8 @@ const Savannah = () => {
                         src={snake}
                         alt="snake"
                     />
-                </Grid>
+                </Grid>)}
         </Grid>)}
-            {/*<img src={background} alt="savannah background" className={classes.backgroundImg}/>*/}
         </>
     );
 };
@@ -268,14 +273,8 @@ const useStyles = makeStyles({
         transform: `scale(${scaleSize})`
     }),
     gameContainer: {
-        height: '500px',
+        height: '550px',
     },
-    // backgroundImg:{
-    //     position: 'absolute',
-    //     width: '100vw',
-    //     height: '100vh',
-    //     objectFit: 'fill',
-    // },
     fallingWord: {
         fontSize: '35px',
         textAlign: 'center',
@@ -293,12 +292,17 @@ const useStyles = makeStyles({
         position: 'relative',
         top: '50%',
     },
+    wordButton: {
+        background: 'linear-gradient(#63c9f585, #ffc7647d)',
+        height: '120px',
+        width: '120px',
+        wordBreak: 'break-word',
+        borderRadius: '50%',
+        outline: 'none',
+        cursor: 'pointer',
+    },
     snakeCorrectAnswer: {
         animation: `$snakeCorrectAnimation 5s infinite, $shake 2.5s linear infinite`,
-    },
-    gameOver: {
-        textAlign: 'center',
-        color: 'red',
     },
     '@keyframes shake': {
         '0%': { transform: 'translate(1px, 1px) rotate(0deg)', },
@@ -324,3 +328,4 @@ const useStyles = makeStyles({
 });
 
 export default Savannah;
+

@@ -17,6 +17,7 @@ export function useWords(){
 	const getWordsChunk = useCallback((group, page) => {
 		if (words[group] && words[group][page]) {
 			setCurrentWords(words[group][page])
+			setOnLoading(false)
 			return words[group][page]
 		} else {
 			dispatch(getWords(group, page))

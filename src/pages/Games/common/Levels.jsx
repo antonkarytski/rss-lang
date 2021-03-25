@@ -16,9 +16,7 @@ const Levels = (props) => {
     }, [changeActiveLevel]);
 
     return (
-        <Grid container justify="center" alignItems="center">
-            <Grid container justify="center" alignItems="center" className={classes.container}>
-                <span className={classes.header}>Уровень</span>
+        <Grid container justify="center" alignItems="center" className={classes.container}>
                 <Grid container justify="center" alignItems="center" className={classes.buttonsContainer}>
                     {
                         levels.map((level, index) => (
@@ -35,37 +33,31 @@ const Levels = (props) => {
                         ))
                     }
                 </Grid>
-            </Grid>
         </Grid>
     );
 };
 const useStyles = makeStyles({
     container: {
-        width: 'max-content',
-        background: '#e5e7fa',
-        borderRadius: '5px',
+        width: '245px',
     },
     header: {
         margin: '0px 0px 0px 10px',
         fontSize: '16px',
         lineHeight: '13px',
-        color: '#6979F8',
+        color: '#b1d2c4',
     },
     buttonsContainer: {
-        paddingInlineStart: '10px',
-        margin: '10px 0px 10px 0',
+        // margin: '10px 0px 10px 0',
     },
     levelButton: {
-        // display: flex,
-        // justifyContent: center,
-        // alignItems: center,
         listStyle: 'none',
         marginRight: '10px',
-        background: '#6979f8',
+        background: '#b1d2c4',
         width: '29px',
         height: '30px',
-        borderRadius: '50%',
+        borderRadius: '30%',
         border: '3px solid white',
+        outline: 'none',
         "& span": {
             margin: 0,
             fontSize: '12px',
@@ -74,11 +66,11 @@ const useStyles = makeStyles({
         },
         "&:hover": {
             cursor: 'pointer',
-            background: '#4FC8AB',
+            background: '#60dca8',
         },
     },
     activeLevel: {
-        background: '#4FC8AB',
+        background: '#60dca8',
     },
 });
 export default Levels;

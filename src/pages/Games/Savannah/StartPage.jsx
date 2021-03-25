@@ -1,31 +1,26 @@
 import React, { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import {Link, useHistory} from 'react-router-dom';
 import {setStatusGame} from '../../../redux/savannah/actions';
 import {makeStyles} from "@material-ui/core";
-import CloseIcon from '@material-ui/icons/Close';
 import {Grid} from "@material-ui/core";
 import background from "../../../assets/images/startSavannah.jpg";
 import StartModal from "../common/StartModal";
+import CloseButton from "../common/CloseButton";
 
 const StartPage = () => {
     const classes = useStyles();
     const dispatch = useDispatch();
-    const history = useHistory();
 
     const handleStart = useCallback(() => {
         dispatch(setStatusGame(true));
-        history.push("/games/savannah/game");
-    }, [dispatch, history]);
+    }, [dispatch]);
 
     return (
         <>
             <img src={background} alt="savannah background" className={classes.backgroundImg}/>
             <Grid container direction="column" justify="center" alignItems="center" className={classes.container}>
                 <Grid container justify="flex-end" className={classes.exitContainer}>
-                    <Link to="/">
-                        <CloseIcon/>
-                    </Link>
+                    <CloseButton/>
                 </Grid>
                 <StartModal title="Саванна"
                             description="Тренировка Саванна развивает словарный запас. Выбирайте правильный
@@ -48,18 +43,6 @@ const useStyles = makeStyles({
         padding: '1rem',
         zIndex: 1,
         top: 0,
-        "& a": {
-          "& svg": {
-            color: '#ffffff',
-            fontSize: '35px',
-          },
-            "&:active": {
-              transition: 'all .5 easy',
-                "& svg": {
-                    color: '#e0eed4',
-                },
-            },
-        },
     },
     backgroundImg: {
         position: 'absolute',

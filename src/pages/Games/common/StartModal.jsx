@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React from 'react';
 import classNames from 'classnames';
 import Grid from "@material-ui/core/Grid";
 import { makeStyles } from '@material-ui/core/styles';
-
+import Button from "./Button";
 
 const StartModal = (props) => {
     const {children, title, description, classes, label, handleStart} = props;
@@ -12,9 +12,7 @@ const StartModal = (props) => {
               className={classNames(innerClasses.modalContainer, classes.container)}>
                 <h2 className={innerClasses.modalTitle}>{title}</h2>
                 <h3 className={innerClasses.modalDescription}>{description}</h3>
-                <button onClick={handleStart} className={innerClasses.button}>
-                    {label}
-                </button>
+                <Button onClick={handleStart} label={label} classes={{button: classes.button}}/>
                 <div>{children}</div>
         </Grid>
     );
@@ -38,26 +36,5 @@ const useStyles = makeStyles({
     modalDescription: {
         color: '#f5fdfb',
     },
-    button: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '150px',
-        height: '40px',
-        fontSize: '16px',
-        fontWeight: '700',
-        color: '#ffffff',
-        backgroundColor: '#00a098',
-        border: 'none',
-        borderRadius: '5px',
-        outline: 'none',
-        transition: 'all .8s easy',
-        marginTop: '20px',
-        cursor: 'pointer',
-        "&:hover": {
-            backgroundColor: '#45ae8a',
-            transition: 'all .8s easy',
-        },
-    }
 });
 export default StartModal;
