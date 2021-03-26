@@ -39,6 +39,7 @@ const Savannah = () => {
     const [wordID, setWordID] = useState('');
     const [wordAudio, setWordAudio] = useState('');
     const [wordTranscription, setWordTranscription] = useState('');
+    const [wordCounter, setWordCounter] = useState(20);
     const [wordCounter, setWordCounter] = useState(0);
     const [shuffledWords, setShuffledWords] = useState(null)
 
@@ -48,33 +49,13 @@ const Savannah = () => {
 
 
 
-
-    // const randomPage = useMemo(() => {
-    //     return getRandomNumber(0, 19);
-    // },[]);
-    //
-    // useEffect(() => {
-    //     getWordsChunk(activeLevel - 1, randomPage);
-    // },[randomPage, getWordsChunk, activeLevel]);
+    const randomPage = useMemo(() => {
+        return getRandomNumber(0, 19);
+    },[]);
 
     useEffect(() => {
-
-        getWordsChunk(activeLevel - 1, getRandomNumber(0, 19));
-    }, [activeLevel, getWordsChunk])
-
-
-    useEffect(() => {
-        if(currentWords){
-            setShuffledWords(shuffle(currentWords))
-        }
-    }, [currentWords])
-
-
-
-
-    // const shuffledWords = useMemo(() => {
-    //     return (currentWords) ? shuffle(currentWords) : null;
-    // }, [currentWords]);
+        getWordsChunk(activeLevel - 1, randomPage);
+    },[randomPage, getWordsChunk, activeLevel]);
 
     const handleGameOver = useCallback(() => {
             setIsGameOver(true);
@@ -85,6 +66,11 @@ const Savannah = () => {
         []);
 
     useEffect(() => {
+        //randomPage
+        //console.log(words);
+        console.log(currentWords);
+
+        if (currentWords !== null && livesCount && wordCounter) {
         //randomPage
         //console.log(words);
         console.log(shuffledWords);
