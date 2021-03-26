@@ -39,11 +39,15 @@ const Savannah = () => {
     const [wordID, setWordID] = useState('');
     const [wordAudio, setWordAudio] = useState('');
     const [wordTranscription, setWordTranscription] = useState('');
-    const [wordCounter, setWordCounter] = useState(20);
+    const [wordCounter, setWordCounter] = useState(0);
     const [wordCounter, setWordCounter] = useState(0);
     const [shuffledWords, setShuffledWords] = useState(null)
 
     const {currentWords, getWordsChunk, onLoading} = useWords();
+
+    const shuffledWords = useMemo(() => {
+        return currentWords ? shuffle(currentWords) : null;
+    }, [currentWords]);
 
     const classes = useStyles({snakeSize});
 
@@ -66,11 +70,6 @@ const Savannah = () => {
         []);
 
     useEffect(() => {
-        //randomPage
-        //console.log(words);
-        console.log(currentWords);
-
-        if (currentWords !== null && livesCount && wordCounter) {
         //randomPage
         //console.log(words);
         console.log(shuffledWords);
