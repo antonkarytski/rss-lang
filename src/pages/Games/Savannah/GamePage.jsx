@@ -46,7 +46,7 @@ const Savannah = () => {
     const {currentWords, getWordsChunk, onLoading} = useWords();
 
     const shuffledWords = useMemo(() => {
-        return currentWords ? shuffle(currentWords) : null;
+        return (currentWords) ? shuffle(currentWords) : null;
     }, [currentWords]);
 
     const classes = useStyles({snakeSize});
