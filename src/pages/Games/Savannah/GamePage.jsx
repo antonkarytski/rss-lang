@@ -45,10 +45,6 @@ const Savannah = () => {
 
     const {currentWords, getWordsChunk, onLoading} = useWords();
 
-    const shuffledWords = useMemo(() => {
-        return (currentWords) ? shuffle(currentWords) : null;
-    }, [currentWords]);
-
     const classes = useStyles({snakeSize});
 
 
@@ -60,6 +56,10 @@ const Savannah = () => {
     useEffect(() => {
         getWordsChunk(activeLevel - 1, randomPage);
     },[randomPage, getWordsChunk, activeLevel]);
+
+    const shuffledWords = useMemo(() => {
+        return (currentWords) ? shuffle(currentWords) : null;
+    }, [currentWords]);
 
     const handleGameOver = useCallback(() => {
             setIsGameOver(true);
