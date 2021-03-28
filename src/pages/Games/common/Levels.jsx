@@ -65,6 +65,7 @@ const useStyles = makeStyles({
             color: '#ffffff',
         },
         "&:hover": {
+            transition: 'all 0.5s ease-out',
             cursor: 'pointer',
             background: '#60dca8',
         },

@@ -25,7 +25,6 @@ export function useWords(){
 
 		} else {
 			setCurrentRequest({group, page})
-			return "loading"
 			setOnLoading(true)
 			return dispatch(getWords(group, page))
 		}

@@ -18,8 +18,9 @@ import correctSound from "../../../assets/audio/correct.mp3";
 import errorSound from "../../../assets/audio/error.mp3";
 import FullScreenButton from "../common/FullScreenButton";
 
+const NUMBER_OF_WORDS = 20;
+
 const Savannah = () => {
-    let snakeSize = 0.6;
 
     const activeLevel = useSelector(levelSelector);
     const dispatch = useDispatch();
@@ -33,21 +34,18 @@ const Savannah = () => {
     const [livesCount, setLivesCount] = useState(5);
     const [rightAnswers, setrightAnswers] = useState(0);
     const [wrongAnswers, setwrongAnswers] = useState(0);
-    const [soundOn, setSoundOn] = useState(true);
+    const [soundOn, setSoundOn] = useState(false);
     const [word, setWord] = useState('');
     const [wordTranslation, setWordTranslation] = useState('');
     const [wordID, setWordID] = useState('');
     const [wordAudio, setWordAudio] = useState('');
     const [wordTranscription, setWordTranscription] = useState('');
     const [wordCounter, setWordCounter] = useState(0);
-    const [wordCounter, setWordCounter] = useState(0);
-    const [shuffledWords, setShuffledWords] = useState(null)
+    const [snakeSize, setSnakeSize] = useState(0.6);
 
     const {currentWords, getWordsChunk, onLoading} = useWords();
 
     const classes = useStyles({snakeSize});
-
-
 
     const randomPage = useMemo(() => {
         return getRandomNumber(0, 19);
@@ -69,12 +67,11 @@ const Savannah = () => {
         },
         []);
 
+
     useEffect(() => {
-        //randomPage
-        //console.log(words);
         console.log(shuffledWords);
 
-        if (shuffledWords !== null && livesCount && wordCounter < 20) {
+        if (shuffledWords !== null && shuffledWords.length && livesCount && wordCounter < NUMBER_OF_WORDS) {
             const f1 = (randomNumber) => {
                 const newWordTranslation = shuffledWords[randomNumber].wordTranslate;
                 setWord(shuffledWords[randomNumber].word);
@@ -82,13 +79,13 @@ const Savannah = () => {
                 setWordAudio(shuffledWords[randomNumber].audio);
                 setWordTranscription(shuffledWords[randomNumber].transcription);
                 setWordTranslation(newWordTranslation);
-                setArrOfWords(f2(shuffledWords, newWordTranslation));
+                setArrOfWords(setWordsTranslation(shuffledWords, newWordTranslation));
             };
 
             f1(wordCounter);
         }
 
-        if (wordCounter === 20) {
+        if (wordCounter === NUMBER_OF_WORDS) {
             handleGameOver();
         }
     }, [livesCount, wordCounter, getWordsChunk, statisticsArr, handleGameOver, activeLevel, shuffledWords]);
@@ -106,18 +103,19 @@ const Savannah = () => {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (livesCount && !btnClicked) {
+            if (livesCount && shuffledWords && shuffledWords.length && !btnClicked) {
                 setAnswer(false);
                 setLivesCount(livesCount - 1);
                 updateStats(false);
                 playSound(false, soundOn);
+                setWordCounter(wordCounter + 1);
             }
-        }, 6900);
+        }, 6000);
 
         return () => {
             clearTimeout(timer);
         };
-    }, [updateStats, livesCount, answer, btnClicked, soundOn]);
+    }, [shuffledWords, updateStats, livesCount, answer, btnClicked, soundOn, wordCounter]);
 
     const handleExit = useCallback(() => {
         dispatch(setStatusGame(false));
@@ -132,11 +130,10 @@ const Savannah = () => {
         let correct = wordActive === answerActive;
         updateStats(correct);
         setAnswer(correct);
-        setBtnClicked(correct);
         setWordCounter(wordCounter + 1);
 
         if (correct) {
-            snakeSize += 0.02;
+            setSnakeSize(snakeSize + 0.02);
             setrightAnswers(rightAnswers + 1);
             playSound(true, soundOn);
         } else {
@@ -144,14 +141,7 @@ const Savannah = () => {
             setwrongAnswers(wrongAnswers + 1);
             playSound(false, soundOn);
         }
-    }, [livesCount, updateStats, wrongAnswers, wordCounter, rightAnswers, soundOn]);
-
-    const refreshWordsOnClick = useCallback(() => {
-        setTimeout(() => {
-            setAnswer(false);
-            setBtnClicked(false);
-        }, 500);
-    }, []);
+    }, [livesCount, updateStats, wrongAnswers, wordCounter, rightAnswers, soundOn, snakeSize]);
 
     const changeLevel = useCallback((levelProps) => {
         if (activeLevel !== levelProps) {
@@ -159,9 +149,22 @@ const Savannah = () => {
         }
     }, [dispatch, activeLevel]);
 
+    const handleWordClick = useCallback((itemWord) => () => {
+        setBtnClicked(true);
+        setWord("");
+        setTimeout(() => {
+            setBtnClicked(false);
+            checkAnswer(itemWord, wordTranslation);
+            setTimeout(() => {
+                setAnswer(false);
+                setBtnClicked(false);
+            }, 500);
+        }, 350);
+    },[checkAnswer, wordTranslation]);
+
     return (
         <>
-        {!onLoading ? <Loader/> : (
+        {onLoading ? <Loader/> : (
             <Grid className={classes.container}>
                 {isGameOver && (
                     <Statistics
@@ -172,19 +175,15 @@ const Savannah = () => {
                     />)}
 
                 {!isGameOver && (<Grid container justify="space-between" alignItems="center">
-                    <Grid item xs={2.4} >
+                    <Grid item xs={4}>
                         <Levels changeActiveLevel={changeLevel} currentLevel={activeLevel} />
                     </Grid>
-                    <Grid item xs={2.4}  >
+                    <Grid item xs={4} container justify="center">
                         <Lives livesCount={livesCount} gameOver={handleGameOver}/>
                     </Grid>
-                    <Grid item xs={2.4}  >
+                    <Grid item xs={4} container justify="flex-end">
                         <SoundButton onClick={handleChangeSound} isEnabled={soundOn}/>
-                    </Grid>
-                    <Grid item xs={2.4}  >
                         <FullScreenButton/>
-                    </Grid>
-                    <Grid item xs={2.4}  >
                         <CloseButton/>
                     </Grid>
                 </Grid>)}
@@ -203,7 +202,7 @@ const Savannah = () => {
                         })}
                     >
                         <h3 className={classes.fallingWord} >
-                            {(word)}
+                            {word}
                         </h3>
                     </div>
                     <Grid container justify="space-evenly" alignItems="center" className={classes.listWords}>
@@ -211,18 +210,14 @@ const Savannah = () => {
                             arrOfWords.map((itemWord) => (
                                 <button
                                     key={itemWord}
-                                    onClick={(e) => {
-                                        checkAnswer(itemWord, wordTranslation);
-                                        refreshWordsOnClick();
-                                    }}
+                                    onClick={handleWordClick(itemWord)}
                                     className={classNames({
                                         [classes.wordButton]: true,
                                         [classes.bubble]: true,
-                                        [classes.wordButtonWrong]: btnClicked && itemWord !== wordTranslation,
                                         [classes.wordButtonRight]: btnClicked && itemWord === wordTranslation,
                                     })}
                                 >
-                                    {(itemWord)}
+                                    {itemWord}
                                 </button>
                             ))
                         }
@@ -244,7 +239,7 @@ const Savannah = () => {
     );
 };
 
-const f2 = (words, newWordTranslation) => {
+const setWordsTranslation = (words, newWordTranslation) => {
     const arrOfTranslations = [];
     arrOfTranslations.push(newWordTranslation);
 
@@ -254,7 +249,6 @@ const f2 = (words, newWordTranslation) => {
             arrOfTranslations.push(translation);
         }
     }
-
     return shuffle(arrOfTranslations);
 };
 
@@ -280,7 +274,7 @@ const useStyles = makeStyles({
         transform: `scale(${snakeSize})`
     }),
     gameContainer: {
-        height: '550px',
+        height: 'calc(100vh - 45px)',
     },
     fallingWord: {
         fontSize: '35px',
@@ -290,7 +284,7 @@ const useStyles = makeStyles({
         position: 'absolute',
     },
     animation: {
-        animation: `$falling 7s infinite, $disappear 7s infinite`,
+        animation: `$falling 7s infinite`,
     },
     noAnimation: {
      animation: 'unset',
@@ -300,6 +294,7 @@ const useStyles = makeStyles({
         top: '50%',
     },
     wordButton: {
+        position: 'relative',
         display: 'inline-block',
         height: '120px',
         width: '120px',
@@ -308,9 +303,8 @@ const useStyles = makeStyles({
         outline: 'none',
         cursor: 'pointer',
         border: 0,
-        background: 'radial-gradient(circle at bottom, #81e8f6, #76deef 10%, #055194 80%, #062745 100%)',
         "&:before":{
-            content: "",
+            content: `""`,
             position: 'absolute',
             top: '1%',
             left: '5%',
@@ -322,7 +316,7 @@ const useStyles = makeStyles({
             background: 'radial-gradient(circle at top, white, rgba(255, 255, 255, 0) 58%)',
         },
         "&:after":{
-            content: "",
+            content: `""`,
             position: 'absolute',
             top: '5%',
             left: '10%',
@@ -333,9 +327,10 @@ const useStyles = makeStyles({
             zIndex: 2,
             transform: 'rotateZ(-30deg)',
         },
-        "&:active": {
-            animation: `$bubble .5s ease`,
-        },
+    },
+    wordButtonRight: {
+        animation: `$bubble 0.3s linear`,
+        background: 'radial-gradient(circle at bottom, #81e8f6, #76deef 10%, #055194 80%, #062745 100%)',
     },
     bubble: {
         background: 'radial-gradient(circle at 50% 55%, rgba(240, 245, 255, 0.9), rgba(240, 245, 255, 0.9) 40%, rgba(225, 238, 255, 0.8) 60%, rgba(43, 130, 255, 0.4))',
@@ -351,9 +346,7 @@ const useStyles = makeStyles({
             background: 'radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 74%, white 80%, white 84%, rgba(255, 255, 255, 0) 100%)',
         },
     },
-    // wordButtonRight: {
-    //     animation: `$bubble .5s ease-out`,
-    // },
+
     snakeCorrectAnswer: {
         animation: `$snakeCorrectAnimation 5s infinite, $shake 2.5s linear infinite`,
     },
@@ -368,16 +361,10 @@ const useStyles = makeStyles({
     '@keyframes falling': {
         '0%': {
             top: '10%',
+            opacity: 0.9,
         },
         '100%': {
             top: '60%',
-        },
-    },
-    '@keyframes disappear': {
-        '0%': {
-            opacity: 1,
-        },
-        '100%': {
             opacity: 0.1,
         },
     },
@@ -391,8 +378,14 @@ const useStyles = makeStyles({
             transform: 'scale(1)',
         },
 
-        '68%': {
-            transform: 'scaleY(0.5) scaleX(0.5)',
+        '30%': {
+            transform: 'scale(0.7)',
+        },
+        '50%': {
+            transform: 'scale(0.6)',
+        },
+        '70%': {
+            transform: 'scale(0.7)',
         },
 
         '100%': {
