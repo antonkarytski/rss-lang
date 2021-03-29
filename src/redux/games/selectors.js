@@ -17,3 +17,9 @@ export const levelSelector = createSelector(
       return level;
   },
 );
+export const statisticsSelector = createSelector(
+  gameSelector,
+  ({ gameStatistics }) => {
+      return {...gameStatistics};
+  },
+);

@@ -8,7 +8,7 @@ import GamesPage from "./pages/GamesPage";
 import Sprint from "./pages/Games/Sprint";
 import AudioCall from "./pages/Games/AudioCall/AudioCall";
 import Savannah from "./pages/Games/Savannah/Savannah";
-import StatisticPage from "./pages/StatisticPage";
+import StatisticsPage from "./pages/StatisticsPage/StatisticPage";
 import PuzzleGame from "./pages/Games/PuzzleGame/PuzzleGame";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserWords } from "./redux/actions.user";
@@ -59,7 +59,7 @@ export default function App(){
         >
           <Switch location={location}>
             <Route path="/book"><BookPage/></Route>
-            <Route path="/statistic"><StatisticPage/></Route>
+            <Route path="/statistic"><StatisticsPage/></Route>
             <Route path={getGamePath("savannah")} exact component={Savannah}/>
             <Route path={getGamePath("audiocall")}><AudioCall/></Route>
             <Route path={getGamePath("sprint")}><Sprint/></Route>
