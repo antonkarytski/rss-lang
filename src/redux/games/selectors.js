@@ -20,6 +20,6 @@ export const levelSelector = createSelector(
 export const statisticsSelector = createSelector(
   gameSelector,
   ({ gameStatistics }) => {
-      return {...gameStatistics};
+      return gameStatistics;
   },
 );

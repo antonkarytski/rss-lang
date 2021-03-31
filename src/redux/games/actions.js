@@ -1,4 +1,4 @@
-import {SET_LEVEL, SET_GAME_STATUS, SET_GAME_STATISTICS} from "./action-types";
+import {SET_LEVEL, SET_GAME_STATUS} from "./action-types";
 
 export const setStatusGame = (statusGame) => ({
   type: SET_GAME_STATUS,

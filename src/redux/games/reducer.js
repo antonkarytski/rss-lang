@@ -1,20 +1,20 @@
 import {
   SET_LEVEL,
   SET_GAME_STATUS,
-  SET_GAME_STATISTICS
+  SET_GAME_STATISTICS, GET_GAME_STATISTICS
 } from "./action-types";
 
 const initialState = {
   statusGame: '',
   level: 1,
   gameStatistics: {
-    wordCounter: 0,
-    rightAnswers: 0,
-    wrongAnswers: 0,
-    bestSeries: 0,
-    isUpdating: false,
-    isFetching: false,
+    learnedWords: 0,
+    optional: {
+      savannah: [],
+    },
   },
+  isUpdating: false,
+  isFetching: false,
 };
 
 const gameReducer = (state = initialState, action) => {

@@ -1,5 +1,5 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
-import { getRandomNumber, shuffle } from '../../../helpers/gameUtils';
+import {getRandomNumber, populateStatistics, shuffle} from '../../../helpers/gameUtils';
 import {setStatusGame, setLevel, setGameStatistics} from '../../../redux/games/actions';
 import {Grid, makeStyles} from "@material-ui/core";
 import {useDispatch, useSelector} from "react-redux"
@@ -17,6 +17,7 @@ import SoundButton from "../common/SoundButton";
 import correctSound from "../../../assets/audio/correct.mp3";
 import errorSound from "../../../assets/audio/error.mp3";
 import FullScreenButton from "../common/FullScreenButton";
+import {addStatisticsThunk, getStatisticsThunk} from "../../../redux/games/thunk.statistics";
 
 
 const NUMBER_OF_WORDS = 20;
@@ -24,8 +25,8 @@ const NUMBER_OF_WORDS = 20;
 const Savannah = () => {
 
     const activeLevel = useSelector(levelSelector);
-    const gameStatistics = useSelector(statisticsSelector);
-    console.log(gameStatistics);
+    const allStatistics = useSelector(statisticsSelector);
+    //console.log(allStatistics);
     const dispatch = useDispatch();
 
     const [answer, setAnswer] = useState('');
@@ -35,8 +36,9 @@ const Savannah = () => {
     const [isExit, setIsExit] = useState(false);
     const [isGameOver, setIsGameOver] = useState(false);
     const [livesCount, setLivesCount] = useState(5);
-    /// current game statistics
-    const [answers, setAnswers] = useState({rightAnswers: 0, wrongAnswers: 0, bestSeries: 0});
+    const [currentGameStatistics, setCurrentGameStatistics] = useState({
+      rightAnswers: 0, wrongAnswers: 0, bestSeries: 0
+    });
     const [soundOn, setSoundOn] = useState(false);
     const [word, setWord] = useState('');
     const [wordTranslation, setWordTranslation] = useState('');
@@ -46,7 +48,7 @@ const Savannah = () => {
     const [wordCounter, setWordCounter] = useState(0);
     const [snakeSize, setSnakeSize] = useState(0.6);
 
-    const [currentSerries, setCurrentSeries] = useState(0);
+    const [currentSeries, setCurrentSeries] = useState(0);
 
     const {currentWords, getWordsChunk, onLoading} = useWords();
 
@@ -56,8 +58,16 @@ const Savannah = () => {
         return getRandomNumber(0, 19);
     },[]);
 
+    const userId = useMemo(() => {
+      return JSON.parse(localStorage.getItem("userData")).id
+    }, []);
+
     useEffect(() => {
-        getWordsChunk(activeLevel - 1, randomPage);
+      dispatch(getStatisticsThunk(userId));
+    }, [dispatch, userId]);
+
+    useEffect(() => {
+      getWordsChunk(activeLevel - 1, randomPage);
     },[randomPage, getWordsChunk, activeLevel]);
 
     const shuffledWords = useMemo(() => {
@@ -65,18 +75,18 @@ const Savannah = () => {
     }, [currentWords]);
 
     const handleGameOver = useCallback(() => {
-            setIsGameOver(true);
-            setWord(' ');
-            setArrOfWords([]);
-            setLivesCount(0);
-            dispatch(setGameStatistics({...answers, wordCounter}));
-        },
-        [dispatch, answers]);
-
+        setIsGameOver(true);
+        setWord(' ');
+        setArrOfWords([]);
+        setLivesCount(0);
+        const updatesStatistics = populateStatistics(
+          "savannah", allStatistics, {...currentGameStatistics, wordCounter, createdOn: Date.now()}
+          );
+        updatesStatistics.learnedWords = wordCounter;
+        dispatch(addStatisticsThunk(userId, updatesStatistics));
+    }, [dispatch, currentGameStatistics, wordCounter, userId, allStatistics]);
 
     useEffect(() => {
-        console.log(shuffledWords);
-
         if (shuffledWords !== null && shuffledWords.length && livesCount && wordCounter < NUMBER_OF_WORDS) {
             const f1 = (randomNumber) => {
                 const newWordTranslation = shuffledWords[randomNumber].wordTranslate;
@@ -110,7 +120,6 @@ const Savannah = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             if (livesCount && shuffledWords && shuffledWords.length && !btnClicked) {
-                setAnswer(false);
                 setLivesCount(livesCount - 1);
                 updateStats(false);
                 playSound(false, soundOn);
@@ -121,7 +130,7 @@ const Savannah = () => {
         return () => {
             clearTimeout(timer);
         };
-    }, [shuffledWords, updateStats, livesCount, answer, btnClicked, soundOn, wordCounter]);
+    }, [shuffledWords, updateStats, livesCount, currentGameStatistics, btnClicked, soundOn, wordCounter]);
 
     const handleExit = useCallback(() => {
         dispatch(setStatusGame(false));
@@ -137,18 +146,23 @@ const Savannah = () => {
         updateStats(correct);
         setAnswer(correct);
         setWordCounter(wordCounter + 1);
-        // dispatch(setGameStatistics(gameStatistics.rightAnswers + 1));
-        // dispatch(setGameStatistics(gameStatistics.wrongAnswers + 1));
         if (correct) {
             setSnakeSize(snakeSize + 0.02);
-            setAnswers({...answers, rightAnswers: answers.rightAnswers + 1});
+            setCurrentGameStatistics({...currentGameStatistics, rightAnswers: currentGameStatistics.rightAnswers + 1});
+            setCurrentSeries(currentSeries + 1);
             playSound(true, soundOn);
         } else {
-            setLivesCount(livesCount - 1);
-            setAnswers({...answers, wrongAnswers: answers.wrongAnswers + 1});
-            playSound(false, soundOn);
+          currentGameStatistics.wrongAnswers = currentGameStatistics.wrongAnswers + 1;
+          // setCurrentGameStatistics({...currentGameStatistics, wrongAnswers: currentGameStatistics.wrongAnswers + 1});
+          setLivesCount(livesCount - 1);
+          playSound(false, soundOn);
+          if (currentSeries >= currentGameStatistics.bestSeries) {
+            currentGameStatistics.bestSeries = currentSeries;
+            setCurrentSeries(0);
+          }
+          setCurrentGameStatistics({...currentGameStatistics});
         }
-    }, [dispatch, livesCount, updateStats, answers, wordCounter, soundOn, snakeSize]);
+    }, [livesCount, updateStats, currentGameStatistics, currentSeries, wordCounter, soundOn, snakeSize]);
 
     const changeLevel = useCallback((levelProps) => {
         if (activeLevel !== levelProps) {
@@ -176,8 +190,8 @@ const Savannah = () => {
                 {isGameOver && (
                     <Statistics
                         statisticsArr={statisticsArr}
-                        rightAnswers={answers.rightAnswers}
-                        wrongAnswers={answers.wrongAnswers}
+                        rightAnswers={currentGameStatistics.rightAnswers}
+                        wrongAnswers={currentGameStatistics.wrongAnswers}
                         toNewGame={handleExit}
                     />)}
 

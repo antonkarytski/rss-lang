@@ -116,6 +116,9 @@ const {getUserWordsGroup, subscribedUserWordsGroup, onLoading, currentUserWordsG
 //-------------------------------------------------------------------------
 //Хук для обновления данных о слове юзера
 import {useUserWordUpdate} from './src/hooks/hooks.user'
+import {useEffect, useState} from "react";
+import {addStatisticsThunk, getStatisticsThunk} from "./src/redux/games/thunk.statistics";
+import {populateStatistics} from "./src/helpers/gameUtils";
 const { update, updatedWord, onError } = useUserWordUpdate()
 
 // update get word object from words array (not user array) and additional data
@@ -160,6 +163,23 @@ const activeLevel = useSelector(levelSelector);
 dispatch(setLevel(levelProps));
 // изменяем уровень
 //-------------------------------------------------------------------------
+//как исп-ть statistics thunk
 
+const allStatistics = useSelector(statisticsSelector);
 
+const [currentGameStatistics, setCurrentGameStatistics] = useState({
+  rightAnswers: 0, wrongAnswers: 0, bestSeries: 0
+});
 
+const [currentSeries, setCurrentSeries] = useState(0);
+
+useEffect(() => {
+  dispatch(getStatisticsThunk(userId));
+}, [dispatch, userId]);
+
+//в функции окончания игры добавляем
+const updatesStatistics = populateStatistics(
+  "savannah", allStatistics, {...currentGameStatistics, wordCounter, createdOn: Date.now()}
+);
+updatesStatistics.learnedWords = wordCounter;
+dispatch(addStatisticsThunk(userId, updatesStatistics));
