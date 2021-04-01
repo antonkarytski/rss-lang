@@ -34,8 +34,8 @@ const StatisticsPage = () => {
       return {
         savannah: {
           name: "Саванна",
-          todayStatistics: todayStatistics.optional.savannah,
-          allStatistics: allStatistics.optional.savannah,
+          todayStatistics: todayStatistics.savannah,
+          allStatistics: allStatistics.savannah,
         }
       };
     }
@@ -117,7 +117,7 @@ const getTotalStatistics = (byGameStatistics) => {
   }, { totalLearnedWords: 0, rightAnswers: 0 });
 
   totalStatistics.rightAnswersPercent =
-    Math.round(totalStatistics.rightAnswers * 100 / totalStatistics.wordCounter);
+    Math.round(totalStatistics.rightAnswers * 100 / totalStatistics.totalLearnedWords);
 
   return totalStatistics;
 };
