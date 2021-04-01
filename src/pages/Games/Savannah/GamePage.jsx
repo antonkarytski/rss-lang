@@ -1,6 +1,6 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import {getRandomNumber, populateStatistics, shuffle} from '../../../helpers/gameUtils';
-import {setStatusGame, setLevel, setGameStatistics} from '../../../redux/games/actions';
+import {setStatusGame, setLevel} from '../../../redux/games/actions';
 import {Grid, makeStyles} from "@material-ui/core";
 import {useDispatch, useSelector} from "react-redux"
 import snake from "../../../assets/images/snake.svg"

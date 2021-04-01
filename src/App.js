@@ -8,7 +8,7 @@ import GamesPage from "./pages/GamesPage";
 import Sprint from "./pages/Games/Sprint";
 import AudioCall from "./pages/Games/AudioCall/AudioCall";
 import Savannah from "./pages/Games/Savannah/Savannah";
-import StatisticsPage from "./pages/StatisticsPage/StatisticPage";
+import StatisticsPage from "./pages/StatisticsPage/StatisticsPage";
 import PuzzleGame from "./pages/Games/PuzzleGame/PuzzleGame";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserWords } from "./redux/actions.user";
