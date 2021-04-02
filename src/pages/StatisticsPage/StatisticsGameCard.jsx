@@ -39,6 +39,7 @@ const useStyles = makeStyles((theme) =>
       width: '330px',
       transition: 'all linear 1s',
       padding: '15px',
+      margin: '15px',
       borderRadius: '5px',
       backgroundColor: '#a9d0b6a3',
       border: '1px solid #00a0983b',

@@ -1,8 +1,9 @@
 import {getGameStatistics, setGameStatistics} from "./actions";
 import {GET_GAME_STATISTICS, SET_GAME_STATISTICS} from "./action-types";
+import {getUserData} from "../../helpers/gameUtils";
 
 const server = "https://rss-words-3.herokuapp.com";
-const token =  JSON.parse(localStorage.getItem("userData")).token;
+const token =  getUserData()?.token;
 
 export const addStatisticsThunk = (id, gameStatistics) => (dispatch) => {
   dispatch(setGameStatistics(SET_GAME_STATISTICS.START));
@@ -27,10 +28,8 @@ export const addStatisticsThunk = (id, gameStatistics) => (dispatch) => {
       dispatch(setGameStatistics(SET_GAME_STATISTICS.FAILED));
     });
 };
-//export const getStatisticsThunk = (id, fetchAllStatistics = false) => (dispatch) => {
 export const getStatisticsThunk = (id) => (dispatch) => {
   dispatch(getGameStatistics(GET_GAME_STATISTICS.START));
-  //dispatch(getGameStatistics(GET_GAME_STATISTICS.FINISHED, res));
   fetch(`${server}/users/${id}/statistics`, {
     method: "GET",
     headers: {

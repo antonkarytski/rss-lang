@@ -23,6 +23,7 @@ import {addStatisticsThunk, getStatisticsThunk} from "../../../redux/games/thunk
 const NUMBER_OF_WORDS = 20;
 
 const Savannah = () => {
+    //const {words, onLoading, onWordSelect} = props;
 
     const activeLevel = useSelector(levelSelector);
     const allStatistics = useSelector(statisticsSelector);

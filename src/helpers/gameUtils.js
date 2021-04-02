@@ -54,3 +54,7 @@ export const populateStatistics = (key, totalStatistics, gameStatistics) => {
   } catch (e) {}
   return totalStatistics;
 };
+
+export const getUserData = () => {
+  return JSON.parse(localStorage.getItem("userData")) || {};
+};

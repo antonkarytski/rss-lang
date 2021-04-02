@@ -1,15 +1,18 @@
-import React from "react";
+import React, {useMemo} from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import AuthBlock from "./AuthBlock";
 import AuthForm from "../../components/AuthForm/AuthForm";
 import Button from "../../components/Buttons/Button";
 import classesCss from "./Navigation.module.scss";
+import {getUserData} from "../../helpers/gameUtils";
 
 export default function NavigationBar() {
   const location = useLocation();
   const navigationClasses = [classesCss.Navigation];
   if (location.pathname === "/")
     navigationClasses.push(classesCss.NavigationCloud);
+
+  const userId = useMemo(() => getUserData()?.id,[]);
 
   return (
     <div className={navigationClasses.join(" ")}>
@@ -31,17 +34,19 @@ export default function NavigationBar() {
       >
         <AuthForm />
       </AuthBlock>
-      <NavLink to="/statistic">
-        <Button
-          label={"Статистика"}
-          style={{
-            backgroundImage: `url(${process.env.PUBLIC_URL}/static/statistic.jpg)`,
-          }}
-          className={[classesCss.BubbleButton, classesCss.StatisticButton].join(
-            " "
-          )}
-        />
-      </NavLink>
+      {userId && (
+        <NavLink to="/statistic">
+          <Button
+            label={"Статистика"}
+            style={{
+              backgroundImage: `url(${process.env.PUBLIC_URL}/static/statistic.jpg)`,
+            }}
+            className={[classesCss.BubbleButton, classesCss.StatisticButton].join(
+              " "
+            )}
+          />
+        </NavLink>
+      )}
       <NavLink
         onClick={() => sessionStorage.setItem("currentPage", 0)}
         to="/book/group/1"
