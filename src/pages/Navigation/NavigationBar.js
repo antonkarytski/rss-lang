@@ -59,7 +59,7 @@ export default function NavigationBar() {
           className={[classesCss.BubbleButton, classesCss.BookButton].join(" ")}
         />
       </NavLink>
-      <NavLink to="/games/savannah">
+      <NavLink to={{ pathname: "/games/savannah", state: { go: "go" } }}>
         <Button
           label={"Саванна"}
           style={{

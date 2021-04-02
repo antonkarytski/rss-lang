@@ -1,7 +1,7 @@
 import {
   SET_LEVEL,
   SET_GAME_STATUS,
-  SET_GAME_STATISTICS, GET_GAME_STATISTICS
+  SET_GAME_STATISTICS, GET_GAME_STATISTICS, RESET_GAME_STATISTICS
 } from "./action-types";
 
 const initialState = {
@@ -10,7 +10,7 @@ const initialState = {
   gameStatistics: {
     learnedWords: 0,
     optional: {
-      savannah: [],
+      savannah: null,
     },
   },
   isUpdating: false,
@@ -59,6 +59,10 @@ const gameReducer = (state = initialState, action) => {
         ...payload,
         isUpdating: false
       };
+
+    case RESET_GAME_STATISTICS:
+      return initialState;
+
     default:
       return state;
   }

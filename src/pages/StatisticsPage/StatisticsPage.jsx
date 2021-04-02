@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import classNames from 'classnames';
 import {createStyles, Grid, makeStyles} from "@material-ui/core";
 import {getStatisticsThunk} from "../../redux/games/thunk.statistics";
 import {useDispatch, useSelector} from "react-redux";
@@ -7,17 +6,17 @@ import {statisticsSelector} from "../../redux/games/selectors";
 import StatisticsGameCard from "./StatisticsGameCard";
 import CloseButton from "../Games/common/CloseButton";
 import BarChart from "./BarChart";
-import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import RadioGroup from "@material-ui/core/RadioGroup";
 import Radio from "@material-ui/core/Radio";
 import {getUserData} from "../../helpers/gameUtils";
+import {GET_GAME_STATISTICS} from "../../redux/games/action-types";
+import {resetGameStatistics} from "../../redux/games/actions";
 
 const StatisticsPage = () => {
   const dispatch = useDispatch();
   const classes = useStyles();
   const allStatistics = useSelector(statisticsSelector);
-  //console.log(allStatistics);
   const games = {
     savannah: 'savannah',
     audiocall: 'audiocall',
@@ -25,16 +24,18 @@ const StatisticsPage = () => {
     sprint: 'sprint',
   };
   const [value, setValue] = useState(games.savannah);
-  //const [activeRadioButton, seActiveRadioButton] = useState(games.savannah);
 
   const userId = useMemo(() => getUserData()?.id,[]);
 
   useEffect(() => {
     dispatch(getStatisticsThunk(userId));
+    return () => {
+      dispatch(resetGameStatistics());
+    }
   }, [dispatch, userId]);
 
   const statistics = useMemo(() => {
-    if (allStatistics.optional.savannah.length){
+    if (allStatistics.optional.savannah){
       return parseStatistics(allStatistics);
     }
   },[allStatistics]);
@@ -45,103 +46,108 @@ const StatisticsPage = () => {
       const todayStatistics = getByGameStatistics(statistics, true);
       return {
         totalLearnedWords: todayStatistics.totalLearnedWords,
-        rightAnswersPercentToday: todayStatistics.rightAnswersPercent,
+        rightAnswersPercentToday: todayStatistics.rightAnswersPercent ? todayStatistics.rightAnswersPercent : 0,
         savannah: {
           name: "Саванна",
           todayStatistics: todayStatistics.savannah,
           allStatistics: allStatistics.savannah,
-        }
+        },
       };
     }
   },[statistics]);
-  // const barData = [
-  //   {t: new Date(1617133113039), y: 30},
-  //   {t: new Date(1617185550774), y: 25},
-  //   {t: new Date(1617271239511), y: 15},
-  // ];
+
   const barData = useMemo(() => {
     if (statistics) {
       return longTermStat(statistics);
     }
   }, [statistics]);
-  //   [
-  //   {t: new Date(1617133113039), y: 30},
-  //   {t: new Date(1617185550774), y: 25},
-  //   {t: new Date(1617271239511), y: 15},
-  // ];
-  // {
-  //   "1617133100000": 45,
-  //   "1617133200000": 75,
-  // }
 
+  const barDataDelta = useMemo(() => {
+    if (statistics) {
+      return longTermDeltaStat(statistics);
+    }
+  }, [statistics]);
 
   const handleChange = useCallback((event) => {
     setValue(event.target.value);
   },[]);
 
   return (
-    <Grid container direction="column" alignItems="center" className={classes.container}>
+    <Grid container alignItems="center" className={classes.container}>
       <Grid container justify="flex-end">
         <CloseButton/>
       </Grid>
-      <h1>Статистика</h1>
+      <h1 className={classes.title}>Статистика</h1>
 
-      <Grid container alignItems="flex-start">
+      <Grid container alignItems="flex-start" className={classes.buttonsContainer}>
         <RadioGroup row value={value} onChange={handleChange}>
-            <FormControlLabel value="end" control={<Radio value={games.savannah} classes={{ root: classes.root, checked: classes.checked}}/>} label="Саванна"/>
-            <FormControlLabel value="end" control={<Radio value={games.audiocall} classes={{ root: classes.root, checked: classes.checked}}/>} label="Аудиовызов"/>
-            <FormControlLabel value="end" control={<Radio value={games.puzzleGame} classes={{ root: classes.root, checked: classes.checked}}/>} label="Пазл"/>
-            <FormControlLabel value="end" control={<Radio value={games.sprint} classes={{ root: classes.root, checked: classes.checked}}/>} label="Спринт"/>
+          <FormControlLabel value="end"
+                            control={<Radio value={games.savannah}
+                                            classes={{root: classes.root, checked: classes.checked}}/>}
+                            label="Саванна"/>
+          <FormControlLabel value="end"
+                            control={<Radio value={games.audiocall}
+                                            classes={{root: classes.root, checked: classes.checked}}/>}
+                            label="Аудиовызов"/>
+          <FormControlLabel value="end"
+                            control={<Radio value={games.puzzleGame}
+                                            classes={{root: classes.root, checked: classes.checked}}/>}
+                            label="Пазл"/>
+          <FormControlLabel value="end"
+                            control={<Radio value={games.sprint}
+                                            classes={{root: classes.root, checked: classes.checked}}/>}
+                            label="Спринт"/>
         </RadioGroup>
-      </Grid>
-
-
-      <Grid container direction="column" justify="center" alignItems="flex-start" className={classes.dayStatistics}>
-        <div>общее количество изученных слов за день: {GAMES?.totalLearnedWords}</div>
-        <div>процент правильных ответов за день: {GAMES?.rightAnswersPercentToday} %</div>
       </Grid>
 
       <Grid container justify="center" alignItems="center" className={classes.gamesStatistics}>
         {value === games.savannah &&
-          <StatisticsGameCard
-            gameTitle={GAMES?.savannah.name}
-            learnedWords={GAMES?.savannah.todayStatistics.wordCounter}
-            rightAnswersPercent={GAMES?.savannah.todayStatistics.rightAnswersPercent}
-            bestSeries={GAMES?.savannah.todayStatistics.bestSeries} />
+        <StatisticsGameCard
+          gameTitle={GAMES?.savannah.name}
+          learnedWords={GAMES?.savannah.todayStatistics.wordCounter}
+          rightAnswersPercent={GAMES?.savannah.todayStatistics.rightAnswersPercent}
+          bestSeries={GAMES?.savannah.todayStatistics.bestSeries}/>
         }
       </Grid>
       <Grid container justify="center" alignItems="center" className={classes.gamesStatistics}>
         {value === games.audiocall &&
-          <StatisticsGameCard
-            gameTitle={"123"}
-            learnedWords={"456"}
-            rightAnswersPercent={"789"}
-            bestSeries={"10"} />
+        <StatisticsGameCard
+          gameTitle={"123"}
+          learnedWords={"456"}
+          rightAnswersPercent={"789"}
+          bestSeries={"10"}/>
         }
       </Grid>
       <Grid container justify="center" alignItems="center" className={classes.gamesStatistics}>
         {value === games.puzzleGame &&
-          <StatisticsGameCard
-            gameTitle={GAMES?.savannah.name}
-            learnedWords={GAMES?.savannah.todayStatistics.wordCounter}
-            rightAnswersPercent={GAMES?.savannah.todayStatistics.rightAnswersPercent}
-            bestSeries={GAMES?.savannah.todayStatistics.bestSeries} />
+        <StatisticsGameCard
+          gameTitle={GAMES?.savannah.name}
+          learnedWords={GAMES?.savannah.todayStatistics.wordCounter}
+          rightAnswersPercent={GAMES?.savannah.todayStatistics.rightAnswersPercent}
+          bestSeries={GAMES?.savannah.todayStatistics.bestSeries}/>
         }
       </Grid>
       <Grid container justify="center" alignItems="center" className={classes.gamesStatistics}>
         {value === games.sprint &&
-          <StatisticsGameCard
-            gameTitle={GAMES?.savannah.name}
-            learnedWords={GAMES?.savannah.todayStatistics.wordCounter}
-            rightAnswersPercent={GAMES?.savannah.todayStatistics.rightAnswersPercent}
-            bestSeries={GAMES?.savannah.todayStatistics.bestSeries} />
+        <StatisticsGameCard
+          gameTitle={GAMES?.savannah.name}
+          learnedWords={GAMES?.savannah.todayStatistics.wordCounter}
+          rightAnswersPercent={GAMES?.savannah.todayStatistics.rightAnswersPercent}
+          bestSeries={GAMES?.savannah.todayStatistics.bestSeries}/>
         }
       </Grid>
 
-      <Grid container direction="column" justify="center" alignItems="flex-start" className={classes.graphics}>
-        {/*<span>за всё время</span>*/}
+      <Grid container justify="space-between" alignItems="flex-start" className={classes.dayStatistics}>
+        <div>Общее количество изученных слов за день: <span>{GAMES?.totalLearnedWords}</span></div>
+        <div>Процент правильных ответов за день: <span>{GAMES?.rightAnswersPercentToday} %</span></div>
+      </Grid>
+
+      <Grid container justify="space-around" className={classes.graphics}>
         <div>
-          <BarChart data={barData} />
+          <BarChart data={barData}/>
+        </div>
+        <div>
+          <BarChart data={barDataDelta}/>
         </div>
       </Grid>
 
@@ -179,7 +185,7 @@ const getGameStatistics = (entries, singleDay = false) => {
   }, { wordCounter: 0, rightAnswers: 0, bestSeries: 0});
 
   gameTotalStatistics.rightAnswersPercent =
-    Math.round(gameTotalStatistics.rightAnswers * 100 / gameTotalStatistics.wordCounter);
+    Math.round(gameTotalStatistics.rightAnswers ? (gameTotalStatistics.rightAnswers * 100 / gameTotalStatistics.wordCounter) : 0);
 
   return gameTotalStatistics;
 };
@@ -211,9 +217,8 @@ const getByGameStatistics = (statistics, singleDay = false) => {
   return { ...byGameStatistics, ...totalStatistics};
 };
 
-
-const longTermStat = (statistics) => {
-  const zhopa = Object.keys(statistics.optional).reduce((res, key) => {
+const getLongTermStatObj = (statistics) => {
+  return Object.keys(statistics.optional).reduce((res, key) => {
     // array of finished games for certain game type eg savannah.
     const gameStatisticsEntries = statistics.optional[key];
     gameStatisticsEntries.forEach((entry) => {
@@ -229,34 +234,54 @@ const longTermStat = (statistics) => {
     });
     return res;
   }, {});
-  console.log(zhopa);
-  return Object.keys(zhopa).map((key) => ({ t: new Date(key), y: zhopa[key] }));
 };
-// {'1010': 10,
-//   '1010': 10,}
-//
+
+const longTermStat = (statistics) => {
+  const longTermStatObj = getLongTermStatObj(statistics);
+  return Object.keys(longTermStatObj).map((key) => ({ t: new Date(+key), y: longTermStatObj[key] }));
+};
+
+const longTermDeltaStat = (statistics) => {
+  const longTermStatObj = getLongTermStatObj(statistics);
+  const values = Object.values(longTermStatObj);
+  const keys = Object.keys(longTermStatObj);
+  const deltaValuesArr = Object.values(longTermStatObj).map((item, index) => {
+    return index ? (item - values[index-1]) : item;
+  });
+  return deltaValuesArr.map((item, index) => ({t: new Date(+keys[index]) , y: item }));
+};
 
 const useStyles = makeStyles((theme) =>
   createStyles({
     container: {
-      background: 'lightgrey',
-      height: '100vh',
+      background: '#47d47f',
+      padding: '25px',
+      //height: '100vh',
+    },
+    title: {
+      color: '#ffffff',
+    },
+    buttonsContainer: {
+      color: '#ffffff',
+      marginBottom: '25px',
     },
     dayStatistics: {
-      padding: '0 25px 25px',
-      lineHeight: '35px',
+      color: '#ffffff',
+      marginBottom: '25px',
+      "& span": {
+        fontSize: '20px',
+        color: '#567df4',
+      },
     },
     gamesStatistics: {
-      maxWidth: '1440px',
     },
     graphics: {
-      padding: '25px',
       lineHeight: '35px',
     },
     root: {
-      color: '#60dca8',
+      color: '#f38c71',
       '&$checked': {
-        color: '#60dca8'
+        color: '#e45731'
       }
     },
     checked: {},

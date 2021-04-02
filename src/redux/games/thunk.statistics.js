@@ -28,6 +28,7 @@ export const addStatisticsThunk = (id, gameStatistics) => (dispatch) => {
       dispatch(setGameStatistics(SET_GAME_STATISTICS.FAILED));
     });
 };
+
 export const getStatisticsThunk = (id) => (dispatch) => {
   dispatch(getGameStatistics(GET_GAME_STATISTICS.START));
   fetch(`${server}/users/${id}/statistics`, {

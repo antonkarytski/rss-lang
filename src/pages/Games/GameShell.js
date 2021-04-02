@@ -93,7 +93,7 @@ export default function GameShell(props) {
       return getChild(wordsProps);
     }
     return null;
-  }, [children, onGroupLoading, onLoading, currentChunk]);
+  }, [children, onGroupLoading, onLoading, currentChunk, addWordToUserHandler]);
 
   return (
     <div className={[className, classesCss.GameShell].join(" ")} style={style}>
@@ -101,12 +101,13 @@ export default function GameShell(props) {
         gameContent
       ) : (
         <GameModal gameData={gameData}>
-          <LevelButtons
-            levelNumbers={6}
-            levelStyles={levelClasses}
-            onSelect={levelSelectHandler}
-          />
-        </GameModal>
+
+            <LevelButtons
+              levelNumbers={6}
+              levelStyles={levelClasses}
+              onSelect={levelSelectHandler}
+            />
+          </GameModal>
       )}
     </div>
   );

@@ -36,13 +36,13 @@ const StatisticsGameCard = (props) => {
 const useStyles = makeStyles((theme) =>
   createStyles({
     container: {
-      width: '330px',
+      width: '350px',
       transition: 'all linear 1s',
-      padding: '15px',
-      margin: '15px',
-      borderRadius: '5px',
-      backgroundColor: '#a9d0b6a3',
-      border: '1px solid #00a0983b',
+      backgroundColor: '#89eab0',
+      padding: '30px',
+      boxShadow: '0 1px 2px 0 rgb(0 0 0 / 25%), 0 2px 4px 1px rgb(0 0 0 / 20%), 0 4px 8px 2px rgb(0 0 0 / 15%), 0 8px 16px 4px rgb(0 0 0 / 10%)',
+      borderRadius: '40px',
+      marginBottom: '25px',
     },
     title: {
       color: '#e45731',
@@ -51,6 +51,11 @@ const useStyles = makeStyles((theme) =>
     },
     line: {
       lineHeight: '25px',
+      color: '#666666',
+      "& td:last-child": {
+        fontSize: '20px',
+        color: '#567df4',
+      }
     },
   }),
 );
