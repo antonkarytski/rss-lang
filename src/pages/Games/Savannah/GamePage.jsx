@@ -8,13 +8,11 @@ import background from "../../../assets/images/2.jpg";
 import {statisticsSelector} from "../../../redux/games/selectors";
 import Statistics from "../common/Statistics";
 import Lives from "../common/Lives";
-import CloseButton from "../../../components/Buttons/CloseButton";
 import SoundButton from "../common/SoundButton";
 import correctSound from "../../../assets/audio/correct.mp3";
 import errorSound from "../../../assets/audio/error.mp3";
 import FullScreenButton from "../common/FullScreenButton";
 import {addStatisticsThunk, getStatisticsThunk} from "../../../redux/games/thunk.statistics";
-import Loader from "../../../components/Loader";
 
 const NUMBER_OF_WORDS = 20;
 
@@ -164,13 +162,10 @@ const Savannah = (props) => {
                     />)}
 
                 {!isGameOver && (<Grid container justify="space-between" alignItems="center">
-                    <Grid item xs={4} container justify="center">
-                        <Lives livesCount={livesCount} gameOver={handleGameOver}/>
-                    </Grid>
-                    <Grid item xs={4} container justify="flex-end">
-                        <SoundButton onClick={handleChangeSound} isEnabled={soundOn}/>
-                        <FullScreenButton/>
-                        <CloseButton/>
+                    <Grid item container justify="center" className={classes.gameIcons}>
+                      <Lives livesCount={livesCount} gameOver={handleGameOver}/>
+                      <SoundButton onClick={handleChangeSound} isEnabled={soundOn}/>
+                      <FullScreenButton/>
                     </Grid>
                 </Grid>)}
 
@@ -259,8 +254,12 @@ const useStyles = makeStyles({
         width: '64px',
         transform: `scale(${snakeSize})`
     }),
+    gameIcons: {
+      position: 'absolute',
+      top: '15px',
+    },
     gameContainer: {
-        height: 'calc(100vh - 45px)',
+        height: 'calc(100vh - 30px)',
     },
     fallingWord: {
         fontSize: '35px',

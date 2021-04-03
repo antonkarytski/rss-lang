@@ -22,7 +22,7 @@ export default function GameShell(props){
     gameData,
     className,
     style,
-    randomLengthStack = 3 //SETTINGS.DEFAULT_WORD_CHUNK_LENGTH,
+    randomLengthStack = SETTINGS.DEFAULT_WORD_CHUNK_LENGTH,
   } = props
 
   const [currentChunk, setCurrentChunk] = useState(null)
