@@ -17,7 +17,7 @@ import {addStatisticsThunk, getStatisticsThunk} from "../../../redux/games/thunk
 const NUMBER_OF_WORDS = 20;
 
 const Savannah = (props) => {
-    const {words, onLoading, onWordSelect} = props;
+    const {words, onLoading, onWordSelect, onGameEnd} = props;
     const allStatistics = useSelector(statisticsSelector);
     const dispatch = useDispatch();
 
@@ -76,9 +76,9 @@ const Savannah = (props) => {
         }
 
         if (wordCounter === NUMBER_OF_WORDS) {
-            handleGameOver();
+          onGameEnd();
         }
-    }, [livesCount, wordCounter, statisticsArr, handleGameOver, words]);
+    }, [livesCount, wordCounter, statisticsArr, words, onGameEnd]);
 
     const updateStats = useCallback((isCorrect) => {
         setStatisticsArr([...statisticsArr, {
@@ -126,7 +126,7 @@ const Savannah = (props) => {
           currentGameStatistics.wrongAnswers = currentGameStatistics.wrongAnswers + 1;
           setLivesCount(livesCount - 1);
           playSound(false, soundOn);
-          onWordSelect(word, {succeed: false});
+          onWordSelect(word, {failed: true});
 
           if (currentSeries >= currentGameStatistics.bestSeries) {
             currentGameStatistics.bestSeries = currentSeries;
@@ -154,16 +154,16 @@ const Savannah = (props) => {
         <>
           {onLoading ? <Grid container justify="center" alignItems="center">ЗАГРУЗКА</Grid> : (
             <Grid className={classes.container}>
-                {isGameOver && (
-                    <Statistics
-                        statisticsArr={statisticsArr}
-                        rightAnswers={currentGameStatistics.rightAnswers}
-                        wrongAnswers={currentGameStatistics.wrongAnswers}
-                    />)}
+                {/*{isGameOver && (*/}
+                {/*    <Statistics*/}
+                {/*        statisticsArr={statisticsArr}*/}
+                {/*        rightAnswers={currentGameStatistics.rightAnswers}*/}
+                {/*        wrongAnswers={currentGameStatistics.wrongAnswers}*/}
+                {/*    />)}*/}
 
                 {!isGameOver && (<Grid container justify="space-between" alignItems="center">
                     <Grid item container justify="center" className={classes.gameIcons}>
-                      <Lives livesCount={livesCount} gameOver={handleGameOver}/>
+                      <Lives livesCount={livesCount} gameOver={onGameEnd}/>
                       <SoundButton onClick={handleChangeSound} isEnabled={soundOn}/>
                       <FullScreenButton/>
                     </Grid>

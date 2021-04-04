@@ -172,7 +172,7 @@ const [currentGameStatistics, setCurrentGameStatistics] = useState({
 });
 
 const [currentSeries, setCurrentSeries] = useState(0);
-
+// на стр стат
 useEffect(() => {
   dispatch(getStatisticsThunk(userId));
 }, [dispatch, userId]);
