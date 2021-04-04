@@ -17,13 +17,49 @@ const StatisticsPage = () => {
   const dispatch = useDispatch();
   const classes = useStyles();
   const allStatistics = useSelector(statisticsSelector);
-  const games = {
-    savannah: 'savannah',
-    audiocall: 'audiocall',
-    puzzleGame: 'puzzleGame',
-    sprint: 'sprint',
-  };
-  const [value, setValue] = useState(games.savannah);
+
+  const statistics = useMemo(() => {
+    if (allStatistics.optional) {
+      return parseStatistics(allStatistics);
+    }
+  },[allStatistics]);
+
+  const TOTAL = useMemo(() => {
+    const todayStatistics = statistics ? getByGameStatistics(statistics, true) : null;
+    return {
+      totalLearnedWords: todayStatistics?.totalLearnedWords || 0,
+      rightAnswersPercentToday: todayStatistics?.rightAnswersPercentToday || 0,
+    }
+  }, [statistics]);
+
+  const GAMES = useMemo(() => {
+    const defaults = {
+      bestSeries: 0,
+      rightAnswers: 0,
+      rightAnswersPercent: 0,
+      wordCounter: 0,
+    };
+    const allStatistics = getByGameStatistics(statistics, false);
+    const todayStatistics = getByGameStatistics(statistics, true);
+    const defaultGamesData = {
+      savannah: { key: "savannah", translation: "Саванна" },
+      audiocall: { key: "audiocall", translation: "Аудиоколл" },
+      puzzle: { key: "puzzle", translation: "Пазл" },
+      sprint: { key: "sprint", translation: "Спринт" },
+    };
+    if (statistics) {
+      Object.keys(defaultGamesData).forEach((key) => {
+        defaultGamesData[key] = {
+          ...defaultGamesData[key],
+          todayStatistics: todayStatistics[key] || defaults,
+          allStatistics: allStatistics[key] || defaults,
+        };
+      });
+    }
+    return defaultGamesData;
+  }, [statistics]);
+
+  const [value, setValue] = useState(GAMES.savannah.key);
 
   const userId = useMemo(() => getUserData()?.id,[]);
 
@@ -33,28 +69,6 @@ const StatisticsPage = () => {
       dispatch(resetGameStatistics());
     }
   }, [dispatch, userId]);
-
-  const statistics = useMemo(() => {
-    if (allStatistics.optional.savannah){
-      return parseStatistics(allStatistics);
-    }
-  },[allStatistics]);
-
-  const GAMES = useMemo(() => {
-    if (statistics) {
-      const allStatistics = getByGameStatistics(statistics, false);
-      const todayStatistics = getByGameStatistics(statistics, true);
-      return {
-        totalLearnedWords: todayStatistics.totalLearnedWords,
-        rightAnswersPercentToday: todayStatistics.rightAnswersPercent ? todayStatistics.rightAnswersPercent : 0,
-        savannah: {
-          name: "Саванна",
-          todayStatistics: todayStatistics.savannah,
-          allStatistics: allStatistics.savannah,
-        },
-      };
-    }
-  },[statistics]);
 
   const barData = useMemo(() => {
     if (statistics) {
@@ -82,64 +96,42 @@ const StatisticsPage = () => {
       <Grid container alignItems="flex-start" className={classes.buttonsContainer}>
         <RadioGroup row value={value} onChange={handleChange}>
           <FormControlLabel value="end"
-                            control={<Radio value={games.savannah}
+                            control={<Radio value={GAMES.savannah.key}
                                             classes={{root: classes.root, checked: classes.checked}}/>}
                             label="Саванна"/>
           <FormControlLabel value="end"
-                            control={<Radio value={games.audiocall}
+                            control={<Radio value={GAMES.audiocall.key}
                                             classes={{root: classes.root, checked: classes.checked}}/>}
                             label="Аудиовызов"/>
           <FormControlLabel value="end"
-                            control={<Radio value={games.puzzleGame}
+                            control={<Radio value={GAMES.puzzle.key}
                                             classes={{root: classes.root, checked: classes.checked}}/>}
                             label="Пазл"/>
           <FormControlLabel value="end"
-                            control={<Radio value={games.sprint}
+                            control={<Radio value={GAMES.sprint.key}
                                             classes={{root: classes.root, checked: classes.checked}}/>}
                             label="Спринт"/>
         </RadioGroup>
       </Grid>
 
       <Grid container justify="center" alignItems="center" className={classes.gamesStatistics}>
-        {value === games.savannah &&
-        <StatisticsGameCard
-          gameTitle={GAMES?.savannah.name}
-          learnedWords={GAMES?.savannah.todayStatistics.wordCounter}
-          rightAnswersPercent={GAMES?.savannah.todayStatistics.rightAnswersPercent}
-          bestSeries={GAMES?.savannah.todayStatistics.bestSeries}/>
-        }
-      </Grid>
-      <Grid container justify="center" alignItems="center" className={classes.gamesStatistics}>
-        {value === games.audiocall &&
-        <StatisticsGameCard
-          gameTitle={"123"}
-          learnedWords={"456"}
-          rightAnswersPercent={"789"}
-          bestSeries={"10"}/>
-        }
-      </Grid>
-      <Grid container justify="center" alignItems="center" className={classes.gamesStatistics}>
-        {value === games.puzzleGame &&
-        <StatisticsGameCard
-          gameTitle={GAMES?.savannah.name}
-          learnedWords={GAMES?.savannah.todayStatistics.wordCounter}
-          rightAnswersPercent={GAMES?.savannah.todayStatistics.rightAnswersPercent}
-          bestSeries={GAMES?.savannah.todayStatistics.bestSeries}/>
-        }
-      </Grid>
-      <Grid container justify="center" alignItems="center" className={classes.gamesStatistics}>
-        {value === games.sprint &&
-        <StatisticsGameCard
-          gameTitle={GAMES?.savannah.name}
-          learnedWords={GAMES?.savannah.todayStatistics.wordCounter}
-          rightAnswersPercent={GAMES?.savannah.todayStatistics.rightAnswersPercent}
-          bestSeries={GAMES?.savannah.todayStatistics.bestSeries}/>
-        }
+        {Object.keys(GAMES || {}).map((key) => {
+          const gameStatistics = GAMES[key];
+          return key === value ? (
+            <StatisticsGameCard
+              key={key}
+              gameTitle={gameStatistics.name}
+              learnedWords={gameStatistics.todayStatistics.wordCounter}
+              rightAnswersPercent={gameStatistics.todayStatistics.rightAnswersPercent}
+              bestSeries={gameStatistics.todayStatistics.bestSeries}
+            />
+          ) : null;
+        })}
       </Grid>
 
       <Grid container justify="space-between" alignItems="flex-start" className={classes.dayStatistics}>
-        <div>Общее количество изученных слов за день: <span>{GAMES?.totalLearnedWords}</span></div>
-        <div>Процент правильных ответов за день: <span>{GAMES?.rightAnswersPercentToday} %</span></div>
+        <div>Общее количество изученных слов за день: <span>{TOTAL?.totalLearnedWords}</span></div>
+        <div>Процент правильных ответов за день: <span>{TOTAL?.rightAnswersPercentToday} %</span></div>
       </Grid>
 
       <Grid container justify="space-around" className={classes.graphics}>

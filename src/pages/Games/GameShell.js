@@ -97,7 +97,7 @@ export default function GameShell(props){
 
     if (isLogged) {
       updateUserWord(word, paramsForUpdate).then(updatedWord => {
-        if(updatedWord.optional.failCounter + updatedWord.optional.successCounter === 1){
+        if (updatedWord.optional.failCounter + updatedWord.optional.successCounter === 1) {
           setStatistic(state => ({...state, wordCounter: state.wordCounter + 1}))
         }
         updateStatisticChunk(word, {userNewResults: updatedWord})
@@ -107,10 +107,14 @@ export default function GameShell(props){
       const statisticForUpdate = {}
       if (paramsForUpdate.succeed) {
         statisticForUpdate.rightAnswers = statistic.rightAnswers + 1
-        if(currentSeries + 1 > statistic.bestSeries) statisticForUpdate.bestSeries = currentSeries + 1
+        if (currentSeries + 1 > statistic.bestSeries) {
+          statisticForUpdate.bestSeries = currentSeries + 1
+        }
         setCurrentSeries(currentSeries + 1)
       } else {
-        if (currentSeries) setCurrentSeries(0)
+        if (currentSeries) {
+          setCurrentSeries(0)
+        }
         statisticForUpdate.wrongAnswers = statistic.wrongAnswers + 1
       }
       setStatistic({...statistic, ...statisticForUpdate})
