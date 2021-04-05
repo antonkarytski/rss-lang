@@ -10,7 +10,6 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import RadioGroup from "@material-ui/core/RadioGroup";
 import Radio from "@material-ui/core/Radio";
 import {getUserData} from "../../helpers/gameUtils";
-import {GET_GAME_STATISTICS} from "../../redux/games/action-types";
 import {resetGameStatistics} from "../../redux/games/actions";
 
 const StatisticsPage = () => {
@@ -28,7 +27,7 @@ const StatisticsPage = () => {
     const todayStatistics = statistics ? getByGameStatistics(statistics, true) : null;
     return {
       totalLearnedWords: todayStatistics?.totalLearnedWords || 0,
-      rightAnswersPercentToday: todayStatistics?.rightAnswersPercentToday || 0,
+      rightAnswersPercentToday: todayStatistics?.rightAnswersPercent || 0,
     }
   }, [statistics]);
 
@@ -43,7 +42,7 @@ const StatisticsPage = () => {
     const todayStatistics = getByGameStatistics(statistics, true);
     const defaultGamesData = {
       savannah: { key: "savannah", translation: "Саванна" },
-      audiocall: { key: "audiocall", translation: "Аудиоколл" },
+      audiocall: { key: "audiocall", translation: "Аудиовызов" },
       puzzle: { key: "puzzle", translation: "Пазл" },
       sprint: { key: "sprint", translation: "Спринт" },
     };
@@ -168,17 +167,17 @@ const getGameStatistics = (entries, singleDay = false) => {
     if ((singleDay && isTodayDate(createdOn)) || !singleDay) {
       gameResult.wordCounter = gameResult.wordCounter + entry.wordCounter;
       gameResult.rightAnswers = gameResult.rightAnswers + entry.rightAnswers;
+      gameResult.wrongAnswers = gameResult.wrongAnswers + entry.wrongAnswers;
       if (gameResult.bestSeries < entry.bestSeries) {
         gameResult.bestSeries = entry.bestSeries;
       }
     }
 
     return gameResult;
-  }, { wordCounter: 0, rightAnswers: 0, bestSeries: 0});
+  }, { wordCounter: 0, rightAnswers: 0, wrongAnswers: 0, bestSeries: 0});
 
   gameTotalStatistics.rightAnswersPercent =
-    Math.round(gameTotalStatistics.rightAnswers ? (gameTotalStatistics.rightAnswers * 100 / gameTotalStatistics.wordCounter) : 0);
-
+    Math.round(gameTotalStatistics.rightAnswers ? (gameTotalStatistics.rightAnswers * 100 / (gameTotalStatistics.rightAnswers + gameTotalStatistics.wrongAnswers)) : 0);
   return gameTotalStatistics;
 };
 
@@ -187,11 +186,12 @@ const getTotalStatistics = (byGameStatistics) => {
     const gameStatistics = byGameStatistics[key];
     res.totalLearnedWords = res.totalLearnedWords + gameStatistics.wordCounter;
     res.rightAnswers = res.rightAnswers + gameStatistics.rightAnswers;
+    res.wrongAnswers = res.wrongAnswers + gameStatistics.wrongAnswers;
     return res;
-  }, { totalLearnedWords: 0, rightAnswers: 0 });
+  }, { totalLearnedWords: 0, wrongAnswers: 0, rightAnswers: 0 });
 
   totalStatistics.rightAnswersPercent =
-    Math.round(totalStatistics.rightAnswers * 100 / totalStatistics.totalLearnedWords);
+    Math.round(totalStatistics.rightAnswers * 100 / (totalStatistics.wrongAnswers + totalStatistics.rightAnswers));
 
   return totalStatistics;
 };

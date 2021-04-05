@@ -1,75 +1,47 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
-import {getRandomNumber, getUserData, populateStatistics, shuffle} from '../../../helpers/gameUtils';
+import {getRandomNumber, shuffle} from '../../../helpers/gameUtils';
 import {Grid, makeStyles} from "@material-ui/core";
-import {useDispatch, useSelector} from "react-redux"
 import snake from "../../../assets/images/snake.svg"
 import classNames from "classnames";
 import background from "../../../assets/images/2.jpg";
-import {statisticsSelector} from "../../../redux/games/selectors";
-import Statistics from "../common/Statistics";
 import Lives from "../common/Lives";
 import SoundButton from "../common/SoundButton";
 import correctSound from "../../../assets/audio/correct.mp3";
 import errorSound from "../../../assets/audio/error.mp3";
 import FullScreenButton from "../common/FullScreenButton";
-import {addStatisticsThunk, getStatisticsThunk} from "../../../redux/games/thunk.statistics";
 
 const NUMBER_OF_WORDS = 20;
 
 const Savannah = (props) => {
     const {words, onLoading, onWordSelect, onGameEnd} = props;
-    const allStatistics = useSelector(statisticsSelector);
-    const dispatch = useDispatch();
-
     const [answer, setAnswer] = useState('');
-    const [statisticsArr, setStatisticsArr] = useState([]);
     const [arrOfWords, setArrOfWords] = useState([]);
     const [btnClicked, setBtnClicked] = useState(false);
-    const [isGameOver, setIsGameOver] = useState(false);
     const [livesCount, setLivesCount] = useState(5);
-    const [currentGameStatistics, setCurrentGameStatistics] = useState({
-      rightAnswers: 0, wrongAnswers: 0, bestSeries: 0
-    });
+
     const [soundOn, setSoundOn] = useState(false);
     const [word, setWord] = useState('');
     const [wordTranslation, setWordTranslation] = useState('');
-    const [wordID, setWordID] = useState('');
-    const [wordAudio, setWordAudio] = useState('');
-    const [wordTranscription, setWordTranscription] = useState('');
     const [wordCounter, setWordCounter] = useState(0);
     const [snakeSize, setSnakeSize] = useState(0.6);
     const [currentSeries, setCurrentSeries] = useState(0);
 
     const classes = useStyles({snakeSize});
 
-    const userId = useMemo(() => getUserData()?.id,[]);
+  const currentChunk = useMemo(() => {
+    if (words?.length > 0) {
+      return [...words]
+    }
+    return null
+  }, [words]);
 
     useEffect(() => {
-      dispatch(getStatisticsThunk(userId));
-    }, [dispatch, userId]);
-
-    const handleGameOver = useCallback(() => {
-        setIsGameOver(true);
-        setWord(' ');
-        setArrOfWords([]);
-        setLivesCount(0);
-        const updatesStatistics = populateStatistics(
-          "savannah", allStatistics, {...currentGameStatistics, wordCounter, createdOn: Date.now()}
-          );
-        updatesStatistics.learnedWords = wordCounter;
-        dispatch(addStatisticsThunk(userId, updatesStatistics));
-    }, [dispatch, currentGameStatistics, wordCounter, userId, allStatistics]);
-
-    useEffect(() => {
-        if (words !== null && words.length && livesCount && wordCounter < NUMBER_OF_WORDS) {
-            const f1 = (randomNumber) => {
-                const newWordTranslation = words[randomNumber].wordTranslate;
-                setWord(words[randomNumber].word);
-                setWordID(words[randomNumber].id);
-                setWordAudio(words[randomNumber].audio);
-                setWordTranscription(words[randomNumber].transcription);
+        if (currentChunk !== null && currentChunk.length && livesCount && wordCounter < NUMBER_OF_WORDS) {
+            const f1 = (wordCounter) => {
+                const newWordTranslation = currentChunk[wordCounter].wordTranslate;
+                setWord(currentChunk[wordCounter].word);
                 setWordTranslation(newWordTranslation);
-                setArrOfWords(setWordsTranslation(words, newWordTranslation));
+                setArrOfWords(setWordsTranslation(currentChunk, newWordTranslation));
             };
 
            f1(wordCounter);
@@ -78,33 +50,25 @@ const Savannah = (props) => {
         if (wordCounter === NUMBER_OF_WORDS) {
           onGameEnd();
         }
-    }, [livesCount, wordCounter, statisticsArr, words, onGameEnd]);
+    }, [livesCount, wordCounter, currentChunk]);
 
-    const updateStats = useCallback((isCorrect) => {
-        setStatisticsArr([...statisticsArr, {
-            'word': word,
-            'id': wordID,
-            'audio': wordAudio,
-            'transcription': wordTranscription,
-            'translation': wordTranslation,
-            'isCorrect': isCorrect,
-        }]);
-    }, [word, wordID, wordAudio, wordTranscription, wordTranslation, statisticsArr]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (livesCount && words && words.length && !btnClicked) {
+            if (livesCount && currentChunk && currentChunk.length && !btnClicked) {
                 setLivesCount(livesCount - 1);
-                updateStats(false);
                 playSound(false, soundOn);
                 setWordCounter(wordCounter + 1);
+
+              //currentChunk[wordCounter] = {...currentChunk[wordCounter], status:"succeed"}
+              onWordSelect(currentChunk[wordCounter], {failed: true});
             }
         }, 6000);
 
         return () => {
             clearTimeout(timer);
         };
-    }, [words, updateStats, livesCount, currentGameStatistics, btnClicked, soundOn, wordCounter]);
+    }, [onWordSelect, currentChunk, livesCount, btnClicked, soundOn, wordCounter]);
 
     const handleChangeSound = useCallback(() => {
         setSoundOn(!soundOn);
@@ -112,30 +76,22 @@ const Savannah = (props) => {
 
     const checkAnswer = useCallback((wordActive, answerActive) => {
         let correct = wordActive === answerActive;
-        updateStats(correct);
         setAnswer(correct);
         setWordCounter(wordCounter + 1);
 
         if (correct) {
-            setSnakeSize(snakeSize + 0.02);
-            setCurrentGameStatistics({...currentGameStatistics, rightAnswers: currentGameStatistics.rightAnswers + 1});
-            setCurrentSeries(currentSeries + 1);
-            onWordSelect(word, {succeed: true});
-            playSound(true, soundOn);
+          setSnakeSize(snakeSize + 0.02);
+          setCurrentSeries(currentSeries + 1);
+          //currentChunk[wordCounter] = {...currentChunk[wordCounter], status:"succeed"}
+          onWordSelect(currentChunk[wordCounter], {succeed: true});
+          playSound(true, soundOn);
         } else {
-          currentGameStatistics.wrongAnswers = currentGameStatistics.wrongAnswers + 1;
           setLivesCount(livesCount - 1);
           playSound(false, soundOn);
-          onWordSelect(word, {failed: true});
-
-          if (currentSeries >= currentGameStatistics.bestSeries) {
-            currentGameStatistics.bestSeries = currentSeries;
-            setCurrentSeries(0);
-          }
-
-          setCurrentGameStatistics({...currentGameStatistics});
+          //currentChunk[wordCounter] = {...currentChunk[wordCounter], status:"succeed"}
+          onWordSelect(currentChunk[wordCounter], {failed: true});
         }
-    }, [onWordSelect, word, livesCount, updateStats, currentGameStatistics, currentSeries, wordCounter, soundOn, snakeSize]);
+    }, [currentChunk, onWordSelect, livesCount, currentSeries, wordCounter, soundOn, snakeSize]);
 
     const handleWordClick = useCallback((itemWord) => () => {
         setBtnClicked(true);
@@ -154,22 +110,16 @@ const Savannah = (props) => {
         <>
           {onLoading ? <Grid container justify="center" alignItems="center">ЗАГРУЗКА</Grid> : (
             <Grid className={classes.container}>
-                {/*{isGameOver && (*/}
-                {/*    <Statistics*/}
-                {/*        statisticsArr={statisticsArr}*/}
-                {/*        rightAnswers={currentGameStatistics.rightAnswers}*/}
-                {/*        wrongAnswers={currentGameStatistics.wrongAnswers}*/}
-                {/*    />)}*/}
 
-                {!isGameOver && (<Grid container justify="space-between" alignItems="center">
+                <Grid container justify="space-between" alignItems="center">
                     <Grid item container justify="center" className={classes.gameIcons}>
                       <Lives livesCount={livesCount} gameOver={onGameEnd}/>
                       <SoundButton onClick={handleChangeSound} isEnabled={soundOn}/>
                       <FullScreenButton/>
                     </Grid>
-                </Grid>)}
+                </Grid>
 
-                {!isGameOver && (<Grid container
+                <Grid container
                       direction="column"
                       justify="space-between"
                       alignItems="center"
@@ -179,7 +129,7 @@ const Savannah = (props) => {
                         className={classNames({
                             [classes.wrapperFalling]: true,
                             [classes.animation]: !btnClicked,
-                            [classes.noAnimation]: isGameOver || btnClicked,
+                            [classes.noAnimation]: btnClicked,
                         })}
                     >
                         <h3 className={classes.fallingWord} >
@@ -212,7 +162,7 @@ const Savannah = (props) => {
                         src={snake}
                         alt="snake"
                     />
-                </Grid>)}
+                </Grid>
         </Grid>)}
             <audio id="correctSound" src={correctSound}/>
             <audio id="errorSound" src={errorSound}/>

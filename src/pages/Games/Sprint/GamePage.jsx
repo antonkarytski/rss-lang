@@ -11,7 +11,6 @@ import SoundButton from "../common/SoundButton";
 import correctSound from "../../../assets/audio/correct.mp3";
 import errorSound from "../../../assets/audio/error.mp3";
 import FullScreenButton from "../common/FullScreenButton";
-import {addStatisticsThunk, getStatisticsThunk} from "../../../redux/games/thunk.statistics";
 import Button from "../common/Button";
 import classesCss from "../PuzzleGame/PuzzleGame.module.scss";
 import Timer from "../common/Timer";

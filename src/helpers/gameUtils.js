@@ -40,12 +40,9 @@ export function checkCollision(staticObj, mobileObj){
     && mobileHorizontalCenter > relStatic.left
     && mobileObj.top > relStatic.bottom
     && mobileObj.top - mobileObj.height < relStatic.top
-
 }
 
 export const populateStatistics = (key, {id, ...totalStatistics}, gameStatistics) => {
-  console.log(totalStatistics)
-  console.log(gameStatistics)
   const savedGameStatistic = totalStatistics.optional[key] ? JSON.parse(totalStatistics.optional[key]) : []
   savedGameStatistic.push(gameStatistics);
   return {...totalStatistics, optional: {...totalStatistics.optional, [key]: JSON.stringify(savedGameStatistic)}};

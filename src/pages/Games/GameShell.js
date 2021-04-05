@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState, useMemo } from "react"
 import { useLocation } from "react-router-dom"
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useUserWordUpdate } from "../../hooks/hooks.user";
 import { useWords, useWordsGroup } from "../../hooks/hooks.words";
 import { createRandomChunkFromGroup } from "../../helpers/utils.words";
@@ -16,7 +16,9 @@ import cx from "classnames"
 import BackToGameLink from "./common/BackToGameLink";
 import CloseButton from "../../components/Buttons/CloseButton";
 import { useStatistic } from "../../hooks/hooks.statistic";
-
+import {resetGameStatistics} from "../../redux/games/actions";
+import {getStatisticsThunk} from "../../redux/games/thunk.statistics";
+import {getUserData} from "../../helpers/gameUtils";
 
 const initialStatistic = {
   rightAnswers: 0,
@@ -34,6 +36,7 @@ export default function GameShell(props){
     randomLengthStack = SETTINGS.DEFAULT_WORD_CHUNK_LENGTH,
   } = props
 
+  const dispatch = useDispatch();
   const {currentWordsGroup, getWordsGroup, onGroupLoading} = useWordsGroup()
   const {currentWords, getWordsChunk, onLoading} = useWords()
   const {update: updateUserWord} = useUserWordUpdate()
@@ -66,9 +69,9 @@ export default function GameShell(props){
     getWordsGroup(index)
   }
 
-  function gameEndHandler(){
+  const gameEndHandler = useCallback(() => {
     setGameEnd(true)
-  }
+  }, []);
 
   function setGameStartAgain(){
     setGameResetKey(state => state + 1)
@@ -122,6 +125,15 @@ export default function GameShell(props){
     updateStatisticChunk(word, {result: paramsForUpdate})
 
   }
+
+  const userId = useMemo(() => getUserData()?.id,[]);
+
+  useEffect(() => {
+    dispatch(getStatisticsThunk(userId));
+    return () => {
+      dispatch(resetGameStatistics());
+    }
+  }, [dispatch, userId]);
 
   useEffect(() => {
     if (urlGroup) {
@@ -227,5 +239,4 @@ export default function GameShell(props){
       <CloseButton/>
     </div>
   )
-}
-;
+};
