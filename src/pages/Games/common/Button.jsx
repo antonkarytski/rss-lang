@@ -3,12 +3,13 @@ import { makeStyles } from '@material-ui/core/styles';
 import classNames from "classnames";
 
 const Button = (props) => {
-    const {label, onClick, classes} = props;
+    const {label, onClick, classes, children} = props;
     const innerClasses = useStyles();
 
     return (
         <button onClick={onClick} className={classNames(innerClasses.button, classes.button)}>
             {label}
+          <div>{children}</div>
         </button>
     );
 };

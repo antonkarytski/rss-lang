@@ -35,15 +35,6 @@ const useStyles = makeStyles({
         transition: 'all 0.5s ease-out',
         "&:active": {
             transform: 'scale(0.8)',
-            "& svg": {
-                color: '#60dca8',
-            },
-        },
-        "&:hover": {
-            "& svg": {
-                transition: 'all 0.5s ease-out',
-                color: '#e0eed4',
-            },
         },
     },
     icon: {

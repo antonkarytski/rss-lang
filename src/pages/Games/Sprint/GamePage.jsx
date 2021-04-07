@@ -1,203 +1,231 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
-import {getRandomNumber, getUserData, populateStatistics, shuffle} from '../../../helpers/gameUtils';
 import {Grid, makeStyles} from "@material-ui/core";
-import {useDispatch, useSelector} from "react-redux"
-import snake from "../../../assets/images/snake.svg"
-import classNames from "classnames";
-import background from "../../../assets/images/2.jpg";
-import {statisticsSelector} from "../../../redux/games/selectors";
-import Lives from "../common/Lives";
+import {useDispatch, useSelector} from "react-redux";
 import SoundButton from "../common/SoundButton";
 import correctSound from "../../../assets/audio/correct.mp3";
 import errorSound from "../../../assets/audio/error.mp3";
 import FullScreenButton from "../common/FullScreenButton";
 import Button from "../common/Button";
-import classesCss from "../PuzzleGame/PuzzleGame.module.scss";
 import Timer from "../common/Timer";
+import ArrowLeftIcon from "@material-ui/icons/ArrowLeft";
+import ArrowRightIcon from "@material-ui/icons/ArrowRight";
+import NotificationsActiveIcon from "@material-ui/icons/NotificationsActive";
+import branch from "../../../assets/images/branch.png";
+import parrot1 from "../../../assets/images/parrot1.png";
+import parrot2 from "../../../assets/images/parrot2.png";
+import parrot3 from "../../../assets/images/parrot3.png";
+import parrot4 from "../../../assets/images/parrot4.png";
+import {SETTINGS} from "../../../settings";
+import classesCss from "../common/StatisticModal/StatisticModal.module.scss";
+import {getRandomNumber, shuffle} from "../../../helpers/gameUtils";
+import classNames from "classnames";
 
 const NUMBER_OF_WORDS = 20;
 
-let targetsCombo = 0;
-let activeMarks = ['empty', 'empty', 'empty'];
-let activeTargets = ['empty', 'empty', 'empty'];
+const Marks = (props) => {
+  const { count = 0 } = props;
 
-const getRandomInt = (max) => Math.floor(Math.random() * Math.floor(max));
+  const marks = [
+    ...(new Array(count).fill(true)),
+    ...(new Array(3 - count).fill(false))
+  ];
 
+  const classes = useStyles();
+
+  return (
+    <Grid container justify="center" alignItems="center" className={classes.marks}>
+      {marks.map((mark, index) => (
+        <Grid item key={index}>
+          {mark && (<div>1</div>)}
+          {!mark && (<div>0</div>)}
+        </Grid>
+      ))}
+    </Grid>
+  );
+};
+
+const Parrots = (props) => {
+  const { count = 1 } = props;
+
+  const parrots = [
+    ...(new Array(count).fill(true)),
+    ...(new Array(4 - count).fill(false))
+  ];
+
+  const classes = useStyles();
+
+  const parrotsSrc = [parrot1, parrot2, parrot3, parrot4];
+
+  return (
+    <Grid container justify="center" alignItems="center" className={classes.parrotsContainer}>
+      {parrots.map((isVisible, index) => (
+          <img key={index} src={parrotsSrc[index]} alt="parrot" className={isVisible ? "" : classes.hidden} />
+      ))}
+      <img src={branch} alt="branch" className={classes.branch}/>
+    </Grid>
+  );
+};
 
 const Sprint = (props) => {
   const {words, onLoading, onWordSelect, onGameEnd} = props;
 
-  const dispatch = useDispatch();
-
-
   const [score, setScore] = useState(0);
   const [rate, setRate] = useState(1);
-  const [marks, setMarks] = useState(['empty', 'empty', 'empty']);
   const [marksCombo, setMarksCombo] = useState(0);
 
-  const [targets, setTargets] = useState(['empty', 'empty', 'empty']);
   const [soundOn, setSoundOn] = useState(false);
   const [wordCounter, setWordCounter] = useState(0);
-
+  const [currentTranslation, setCurrentTranslation] = useState("");
   const classes = useStyles();
 
-  const playAudio = useCallback((audio) => {
+  const currentChunk = useMemo(() => {
+    if (words?.length > 0) {
+      return [...words]
+    }
+    return null
+  }, [words]);
+
+  const playAudio = useCallback((n) => () => {
     const audioPath = 'https://raw.githubusercontent.com/'
       + 'AnnaDavydenko/rslang-data/master/';
-    const pronounce = new Audio(`${audioPath}${audio}`);
+    const pronounce = new Audio(`${audioPath}${currentChunk[n].audio}`);
     pronounce.play();
-  }, []);
+  }, [currentChunk]);
 
-  const changeScore = useCallback(
-    (bool) => {
-      if (bool) {
-        setScore(score + (rate * 10));
+  const setWordTranslation = useCallback((words, correctWordTranslation) => {
+    const arrOfTranslations = [];
+    arrOfTranslations.push(correctWordTranslation);
+    const translation = words[getRandomNumber(0, words.length - 1)].wordTranslate;
+    arrOfTranslations.push(translation);
+    shuffle(arrOfTranslations);
+    const randomTranslation = arrOfTranslations[getRandomNumber(0, arrOfTranslations.length - 1)];
+    setCurrentTranslation(randomTranslation);
+    return randomTranslation;
+  },[]);
+
+  const randomTranslation = useMemo(() => {
+      return currentChunk ? setWordTranslation(currentChunk, currentChunk[wordCounter].wordTranslate) : null;
+  },[currentChunk, wordCounter, setWordTranslation]);
+
+  const changeScore = useCallback((correctAnswer, hasCombo) => {
+    if (correctAnswer) {
+      const multiplier = rate === 1 ? 1 : 2;
+      let calculatedScore = score + (rate * multiplier * 10);
+
+      if (hasCombo) {
+        calculatedScore = calculatedScore + (rate + 1) * 10;
       }
-    }, [rate, score],
-  );
+      setScore(calculatedScore);
+    }
+  }, [rate, score]);
 
   const handleChangeSound = useCallback(() => {
     setSoundOn(!soundOn);
   }, [soundOn]);
 
-  const changeTargets = useCallback(
-    (bool) => {
-      activeTargets = targets;
-      if (bool && targetsCombo < 3) {
-        activeTargets[targetsCombo] = 'hit';
-        targetsCombo += 1;
+  const changeParrots = useCallback((correctAnswer) => {
+      if (correctAnswer && rate < 4) {
         setRate(rate + 1);
       }
-      if (!bool) {
-        targetsCombo = 0;
-        activeTargets = ['empty', 'empty', 'empty'];
-        setRate(1);
+      if (!correctAnswer && rate > 1) {
+        setRate(rate - 1);
       }
-      setTargets([...activeTargets]);
-    }, [targets, rate],
+    }, [rate],
   );
 
-  const changeMark = useCallback(
-    (bool) => {
-      activeMarks = [...marks];
-      if (bool && marksCombo < 3) {
-        activeMarks[marksCombo] = 'hit';
-        setMarksCombo(marksCombo + 1);
-      } else if (bool && marksCombo >= 3) {
-        activeMarks = ['empty', 'empty', 'empty'];
-        setMarksCombo(0);
-        changeTargets(true);
+  const changeMark = useCallback((correctAnswer) => {
+      if (correctAnswer) {
+        const count = marksCombo + 1;
+        setMarksCombo(count);
+        if (count >= 3) {
+          setTimeout(() => {
+            setMarksCombo(0);
+            changeParrots(true);
+          }, 500);
+        }
+        marksCombo === 2 ? changeScore(correctAnswer, true) : changeScore(correctAnswer);
       } else {
         setMarksCombo(0);
-        activeMarks = ['empty', 'empty', 'empty'];
-        changeTargets(false);
+        changeParrots(false);
       }
-      setMarks([...activeMarks]);
-    }, [marks, changeTargets, marksCombo],
+    }, [changeScore, changeParrots, marksCombo],
   );
 
-  const checkAnswer = useCallback((word, answer) => {
-    word.correctAnswer = (word.correctFlag === answer);
-    playSound(false, soundOn);
-    changeMark(word.correctAnswer);
-    changeScore(word.correctAnswer);
-  }, [changeMark, changeScore, soundOn]);
+  const handleClick = useCallback((correctAnswer) => () => {
+    const isCorrect = (
+        correctAnswer && currentChunk[wordCounter].wordTranslate === currentTranslation
+      ) || (
+        !correctAnswer && currentChunk[wordCounter].wordTranslate !== currentTranslation
+    );
 
-  const handleRightClick = useCallback(() => {
+    onWordSelect(currentChunk[wordCounter], {succeed: isCorrect, failed: !isCorrect});
+    changeMark(isCorrect);
+    playSound(isCorrect, soundOn);
+
     setWordCounter(wordCounter + 1);
-    checkAnswer(words[wordCounter], true);
-    if (wordCounter === words.length) {
+    if (wordCounter === currentChunk.length - 1) {
       onGameEnd();
     }
-  },[]);
-
-  const handleFalseClick = useCallback(() => {
-    setWordCounter(wordCounter + 1);
-    checkAnswer(words[wordCounter], false);
-    if (wordCounter === words.length) {
-      onGameEnd();
-    }
-  },[words, wordCounter]);
+  },[onWordSelect, changeMark, soundOn, currentTranslation, currentChunk, wordCounter, onGameEnd]);
 
   return (
     <>
-    <Grid container justify="center" alignItems="center" direction="column" className={classes.container}>
-      <Grid container justify="space-between" alignItems="center">
-        <Grid item container justify="center" className={classes.gameIcons}>
-          <SoundButton onClick={handleChangeSound} isEnabled={soundOn}/>
-          <FullScreenButton/>
-        </Grid>
-      </Grid>
-      <Grid container justify="space-between">
-        <div className={classes.timerContainer}>
-          <Timer
-            cycle={60 * 1000}
-            tic={1000}
-          />
-        </div>
-
-        <Grid container alignItems="center" className={classes.scoreContainer}>
-          <span>{score}</span>
-        </Grid>
-      </Grid>
-      <Grid container justify="center" className={classes.gameContainer}>
-        <Grid container justify="center" alignItems="start" direction="column" className={classes.game}>
-
-          <Grid container justify="center" alignItems="center" className={classes.marks}>
-            {marks.map((type, index) => (
-              <img key={index} src={`../../../assets/images/${type}_mark.svg`} alt="mark"  />
-            ))}
+      {(onLoading || !currentChunk) ? (
+        <Grid container justify="center" alignItems="center">ЗАГРУЗКА</Grid>
+      ) : (
+        <Grid container justify="center" alignItems="center" direction="column" className={classes.container}>
+          <Grid item container justify="flex-start" className={classes.gameIcons}>
+            <SoundButton onClick={handleChangeSound} isEnabled={soundOn}/>
+            <FullScreenButton/>
           </Grid>
+          <Grid container justify="space-between">
+            <div className={classes.timerContainer}>
+              <Timer cycle={60 * 1000} tic={1000}/>
+            </div>
 
-          <Grid container justify="center" alignItems="center" className={classes.marks}>
-            <img src="../../../assets/images/hit_target.svg" alt="hint" />
-            {targets.map((type, index) => (
-              <img key={index} src={`../../../assets/images/${type}_target.svg`} />
-            ))}
+            <Grid container justify="center" alignItems="center" className={classes.scoreContainer}>
+              <span>{score}</span>
+            </Grid>
           </Grid>
+          <Grid container justify="center" alignItems="center" className={classes.gameContainer}>
+            <Grid container justify="space-between" alignItems="flex-start" direction="column" className={classes.game}>
 
-          <Grid container justify="center" alignItems="center" direction="column" className={classes.wordsContainer}>
-            <p className={classes.enWord}>{words[wordCounter].word}</p>
-            <p className={classes.ruWord}>{words[wordCounter].falsyTranslate}</p>
+              <Marks count={marksCombo} />
+              <Parrots count={rate} />
+
+              <Grid container justify="center" alignItems="center" direction="column"
+                    className={classes.wordsContainer}>
+                <Grid container justify="center" alignItems="center">
+                  <p className={classes.enWord}>{currentChunk[wordCounter].word}</p>
+                  {/*<SoundButton*/}
+                  {/*  file={`${SETTINGS.SERVER}/${words[wordCounter].audio}`}*/}
+                  {/*/>*/}
+                  <button onClick={playAudio(wordCounter)} className={classes.audioButton}>
+                    <NotificationsActiveIcon/>
+                  </button>
+                </Grid>
+                <Grid container justify="center" alignItems="center">
+                  <p className={classes.ruWord}>{randomTranslation}</p>
+                </Grid>
+              </Grid>
+
+              <Grid container justify="space-around" alignItems="center" className={classes.buttonsContainer}>
+                <Button label={"Не верно"} onClick={handleClick(false)} classes={{button: classes.buttonFalse}}>
+                  <ArrowLeftIcon className={classes.buttonIcon}/>
+                </Button>
+                <Button label={"Верно"} onClick={handleClick(true)} classes={{button: classes.buttonTrue}}>
+                  <ArrowRightIcon className={classes.buttonIcon}/>
+                </Button>
+              </Grid>
+            </Grid>
           </Grid>
-
-          <Grid container justify="space-between" alignItems="center" className={classes.buttonsContainer}>
-            <Button label={"Не верно"}  onClick={handleFalseClick} classes={{button: classes.buttonFalse}}/>
-            <Button label={"Верно"}  onClick={handleRightClick} classes={{button: classes.buttonTrue}}/>
-          </Grid>
-
-          <div className="Arrows">
-            <img
-              className="Left"
-              src="/assets/images/sprint/left_arrow.svg"
-              alt="arrow left"
-            />
-            <img
-              className="Right"
-              src="/assets/images/sprint/right_arrow.svg"
-              alt="arrow right"
-            />
-          </div>
-
-          <button
-            className="Prononse"
-            onClick={() => { playAudio(wordCounter); }}
-            type="button"
-          >
-            <img
-              className="Prononse_img"
-              src="/assets/images/sprint/sound.svg"
-            />
-          </button>
-
-        </Grid>
-      </Grid>
-    </Grid>
+        </Grid>)}
       <audio id="correctSound" src={correctSound}/>
       <audio id="errorSound" src={errorSound}/>
     </>
   );
 };
+
 
 const playSound = (isCorrect, soundOn) => {
   const correctSound = document.querySelector("#correctSound");
@@ -209,23 +237,24 @@ const playSound = (isCorrect, soundOn) => {
 
 const useStyles = makeStyles({
   container: {
-    height: '100vh',
-    position: 'relative',
-    width: '100vw',
+    // height: '100%',
+    // position: 'relative',
+  },
+  gameIcons: {
+    position: 'absolute',
+    top: '15px',
   },
   timerContainer: {
-    display: 'flex',
-    height: '100px',
-    width: '100px',
-    position: 'relative',
-    left: '228px',
-    top: '80px',
-    marginTop: '3px',
+    // display: 'flex',
+    // height: '100px',
+    // width: '100px',
+    // position: 'relative',
+    // left: '228px',
+    // top: '80px',
+    // marginTop: '3px',
   },
   scoreContainer: {
-    height: '100px',
-    width: '100px',
-    marginLeft: '178px',
+
     "& span": {
       fontSize: '45px',
       lineHeight: '40px',
@@ -234,27 +263,29 @@ const useStyles = makeStyles({
     },
   },
   gameContainer: {
-    height: '100%',
-    width: '100%',
+    // height: '100%',
+    // width: '100%',
   },
   game: {
-    width: '98%',
-    height: '75%',
+    height: '450px',
     maxWidth: '595px',
     maxHeight: '972px',
     background: 'rgba(10, 217, 198, 0.15)',
     mixBlendMode: 'normal',
     borderRadius: '6px',
     marginLeft: '100px',
-    position: 'relative',
+    padding: '10px',
   },
-  marks: {
-    height: '100px',
-    width: '100%',
-  },
+  // marks: {
+  //   height: '100px',
+  //   width: '100%',
+  // },
   wordsContainer: {
-    height: '110px',
-    width: '100%',
+    // height: '110px',
+    // width: '100%',
+    "& button svg": {
+      zIndex: 1,
+    },
   },
   enWord: {
     fontWeight: 'bold',
@@ -268,17 +299,40 @@ const useStyles = makeStyles({
     color: '#FFFFFF',
     marginTop: '9px',
   },
+  parrotsContainer: {
+    position: 'relative',
+  },
+  hidden: {
+    visibility: 'hidden',
+  },
+  branch: {
+    position: 'absolute',
+    top: '-2px',
+    transform: 'rotate(29deg)',
+    width: '270px',
+    height: '150px',
+  },
   buttonsContainer: {
-    height: '100px',
-    width: '100%'
+    // height: '100px',
+    // width: '100%'
   },
   buttonFalse: {
     backgroundColor: '#E10050',
+    flexDirection: 'row-reverse',
   },
   buttonFalseTrue: {
     backgroundColor: '#0AD1BD',
   },
-
+  buttonIcon: {
+    display: 'flex',
+  },
+  audioButton: {
+    display: 'contents',
+    cursor: 'pointer',
+    "& svg": {
+      color: '#ffffff',
+    }
+  },
 });
 
 export default Sprint;
