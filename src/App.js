@@ -56,8 +56,8 @@ export default function App(){
           <GameShell gameData={GAMES.audiocall}><AudioCall/></GameShell>
         </Route>
         <Route path={getGamePath("sprint")}>
-              <GameShell gameData={GAMES.sprint}><Sprint/></GameShell>
-            </Route>
+          <GameShell gameData={GAMES.sprint} randomLengthStack={60}><Sprint/></GameShell>
+        </Route>
         <Route path={getGamePath("puzzle")}>
           <GameShell gameData={GAMES.puzzle}><PuzzleGame/></GameShell>
         </Route>

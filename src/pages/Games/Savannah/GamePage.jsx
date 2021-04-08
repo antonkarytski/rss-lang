@@ -59,8 +59,6 @@ const Savannah = (props) => {
                 setLivesCount(livesCount - 1);
                 playSound(false, soundOn);
                 setWordCounter(wordCounter + 1);
-
-              //currentChunk[wordCounter] = {...currentChunk[wordCounter], status:"succeed"}
               onWordSelect(currentChunk[wordCounter], {failed: true});
             }
         }, 6000);

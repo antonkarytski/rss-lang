@@ -1,6 +1,5 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import {Grid, makeStyles} from "@material-ui/core";
-import {useDispatch, useSelector} from "react-redux";
 import SoundButton from "../common/SoundButton";
 import correctSound from "../../../assets/audio/correct.mp3";
 import errorSound from "../../../assets/audio/error.mp3";
@@ -10,6 +9,7 @@ import Timer from "../common/Timer";
 import ArrowLeftIcon from "@material-ui/icons/ArrowLeft";
 import ArrowRightIcon from "@material-ui/icons/ArrowRight";
 import NotificationsActiveIcon from "@material-ui/icons/NotificationsActive";
+import WbIncandescentIcon from '@material-ui/icons/WbIncandescent';
 import branch from "../../../assets/images/branch.png";
 import parrot1 from "../../../assets/images/parrot1.png";
 import parrot2 from "../../../assets/images/parrot2.png";
@@ -19,25 +19,35 @@ import {SETTINGS} from "../../../settings";
 import classesCss from "../common/StatisticModal/StatisticModal.module.scss";
 import {getRandomNumber, shuffle} from "../../../helpers/gameUtils";
 import classNames from "classnames";
+import background from "../../../assets/images/29932.jpg";
 
-const NUMBER_OF_WORDS = 20;
+const NUMBER_OF_MARKS = 3;
+
+const NUMBER_OF_PARROTS = 4;
+
+const MULTIPLIER = {
+  1: 10,
+  2: 20,
+  3: 40,
+  4: 80 
+}
 
 const Marks = (props) => {
   const { count = 0 } = props;
 
   const marks = [
     ...(new Array(count).fill(true)),
-    ...(new Array(3 - count).fill(false))
+    ...(new Array(NUMBER_OF_MARKS - count).fill(false))
   ];
 
   const classes = useStyles();
 
   return (
-    <Grid container justify="center" alignItems="center" className={classes.marks}>
+    <Grid container justify="space-evenly" alignItems="center">
       {marks.map((mark, index) => (
         <Grid item key={index}>
-          {mark && (<div>1</div>)}
-          {!mark && (<div>0</div>)}
+          {mark && (<WbIncandescentIcon className={classes.trueMark} />)}
+          {!mark && (<WbIncandescentIcon className={classes.falseMark} />)}
         </Grid>
       ))}
     </Grid>
@@ -49,7 +59,7 @@ const Parrots = (props) => {
 
   const parrots = [
     ...(new Array(count).fill(true)),
-    ...(new Array(4 - count).fill(false))
+    ...(new Array(NUMBER_OF_PARROTS - count).fill(false))
   ];
 
   const classes = useStyles();
@@ -72,10 +82,10 @@ const Sprint = (props) => {
   const [score, setScore] = useState(0);
   const [rate, setRate] = useState(1);
   const [marksCombo, setMarksCombo] = useState(0);
-
   const [soundOn, setSoundOn] = useState(false);
   const [wordCounter, setWordCounter] = useState(0);
   const [currentTranslation, setCurrentTranslation] = useState("");
+
   const classes = useStyles();
 
   const currentChunk = useMemo(() => {
@@ -86,9 +96,8 @@ const Sprint = (props) => {
   }, [words]);
 
   const playAudio = useCallback((n) => () => {
-    const audioPath = 'https://raw.githubusercontent.com/'
-      + 'AnnaDavydenko/rslang-data/master/';
-    const pronounce = new Audio(`${audioPath}${currentChunk[n].audio}`);
+    const audioPath = `${SETTINGS.SERVER}`;
+    const pronounce = new Audio(`${audioPath}/${currentChunk[n].audio}`);
     pronounce.play();
   }, [currentChunk]);
 
@@ -109,11 +118,12 @@ const Sprint = (props) => {
 
   const changeScore = useCallback((correctAnswer, hasCombo) => {
     if (correctAnswer) {
-      const multiplier = rate === 1 ? 1 : 2;
-      let calculatedScore = score + (rate * multiplier * 10);
+      let calculatedScore = score + MULTIPLIER[rate];
 
-      if (hasCombo) {
-        calculatedScore = calculatedScore + (rate + 1) * 10;
+      if (hasCombo && rate < NUMBER_OF_PARROTS) {
+        calculatedScore = calculatedScore + MULTIPLIER[rate + 1];
+      } else if (hasCombo && rate === NUMBER_OF_PARROTS) {
+        calculatedScore = calculatedScore + MULTIPLIER[rate];
       }
       setScore(calculatedScore);
     }
@@ -168,6 +178,23 @@ const Sprint = (props) => {
     }
   },[onWordSelect, changeMark, soundOn, currentTranslation, currentChunk, wordCounter, onGameEnd]);
 
+  const handleKeyPress = useCallback((e) => {
+    e.preventDefault();
+    if (e.key === "ArrowRight") {
+      handleClick(true)();
+    }
+    if (e.key === "ArrowLeft") {
+      handleClick(false)();
+    }
+  }, [handleClick]);
+
+  useEffect(() => {
+    document.addEventListener("keyup", handleKeyPress);
+    return () => {
+      document.removeEventListener("keyup", handleKeyPress);
+    }
+  }, [handleKeyPress]);
+
   return (
     <>
       {(onLoading || !currentChunk) ? (
@@ -178,31 +205,27 @@ const Sprint = (props) => {
             <SoundButton onClick={handleChangeSound} isEnabled={soundOn}/>
             <FullScreenButton/>
           </Grid>
-          <Grid container justify="space-between">
-            <div className={classes.timerContainer}>
-              <Timer cycle={60 * 1000} tic={1000}/>
-            </div>
 
-            <Grid container justify="center" alignItems="center" className={classes.scoreContainer}>
-              <span>{score}</span>
+          <Grid container justify="center" alignItems="center" direction="column" className={classes.gameContainer}>
+            <Grid container justify="space-between" className={classes.dataContainer}>
+              <Grid container justify="center" alignItems="center" className={classes.timerContainer}>
+                <Timer cycle={60 * 1000} tic={1000} onCountdownFinish={onGameEnd}/>
+              </Grid>
+              <Grid container justify="center" alignItems="center" className={classes.score}>
+                {score}
+              </Grid>
             </Grid>
-          </Grid>
-          <Grid container justify="center" alignItems="center" className={classes.gameContainer}>
             <Grid container justify="space-between" alignItems="flex-start" direction="column" className={classes.game}>
 
-              <Marks count={marksCombo} />
-              <Parrots count={rate} />
+              <Marks count={marksCombo}/>
+              <Parrots count={rate}/>
 
-              <Grid container justify="center" alignItems="center" direction="column"
-                    className={classes.wordsContainer}>
+              <Grid container justify="center" alignItems="center" direction="column" className={classes.wordsContainer}>
+                <button onClick={playAudio(wordCounter)} className={classes.audioButton}>
+                  <NotificationsActiveIcon/>
+                </button>
                 <Grid container justify="center" alignItems="center">
                   <p className={classes.enWord}>{currentChunk[wordCounter].word}</p>
-                  {/*<SoundButton*/}
-                  {/*  file={`${SETTINGS.SERVER}/${words[wordCounter].audio}`}*/}
-                  {/*/>*/}
-                  <button onClick={playAudio(wordCounter)} className={classes.audioButton}>
-                    <NotificationsActiveIcon/>
-                  </button>
                 </Grid>
                 <Grid container justify="center" alignItems="center">
                   <p className={classes.ruWord}>{randomTranslation}</p>
@@ -237,6 +260,12 @@ const playSound = (isCorrect, soundOn) => {
 
 const useStyles = makeStyles({
   container: {
+    height: '100vh',
+    position: 'relative',
+    background: `linear-gradient(#9a733933, #8d8dad30),url(${background})`,
+    backgroundSize: 'cover',
+    backgroundRepeat: 'no-repeat',
+    width: '100vw',
     // height: '100%',
     // position: 'relative',
   },
@@ -244,45 +273,47 @@ const useStyles = makeStyles({
     position: 'absolute',
     top: '15px',
   },
+  dataContainer: {
+    maxWidth: '600px',
+    marginBottom: '5px',
+  },
   timerContainer: {
-    // display: 'flex',
-    // height: '100px',
-    // width: '100px',
-    // position: 'relative',
-    // left: '228px',
-    // top: '80px',
-    // marginTop: '3px',
-  },
-  scoreContainer: {
-
-    "& span": {
-      fontSize: '45px',
-      lineHeight: '40px',
-      textAlign: 'center',
-      color: '#ffffff',
-    },
-  },
-  gameContainer: {
-    // height: '100%',
-    // width: '100%',
-  },
-  game: {
-    height: '450px',
-    maxWidth: '595px',
-    maxHeight: '972px',
-    background: 'rgba(10, 217, 198, 0.15)',
-    mixBlendMode: 'normal',
-    borderRadius: '6px',
-    marginLeft: '100px',
+    fontSize: '45px',
+    lineHeight: '40px',
+    textAlign: 'center',
+    color: '#ffffff',
+    border: '2px solid #e7b78f',
+    borderRadius: '50%',
+    width: '70px',
+    height: '70px',
     padding: '10px',
   },
-  // marks: {
-  //   height: '100px',
-  //   width: '100%',
-  // },
+  score: {
+    fontSize: '45px',
+    lineHeight: '40px',
+    textAlign: 'center',
+    color: '#ffffff',
+    width: '70px',
+    height: '70px',
+    padding: '10px',
+  },
+  gameContainer: {},
+  game: {
+    height: '450px',
+    maxWidth: '600px',
+    background: 'rgb(80 80 80 / 65%)',
+    borderRadius: '40px',
+    padding: '10px',
+  },
+  trueMark: {
+    color: '#ffeb3b',
+    fontSize: '30px',
+  },
+  falseMark: {
+    color: '#ffffff',
+    fontSize: '30px',
+  },
   wordsContainer: {
-    // height: '110px',
-    // width: '100%',
     "& button svg": {
       zIndex: 1,
     },
@@ -312,16 +343,19 @@ const useStyles = makeStyles({
     width: '270px',
     height: '150px',
   },
-  buttonsContainer: {
-    // height: '100px',
-    // width: '100%'
-  },
+  buttonsContainer: {},
   buttonFalse: {
-    backgroundColor: '#E10050',
+    backgroundColor: '#e79666',
     flexDirection: 'row-reverse',
+    "&:hover": {
+      backgroundColor: '#efaf8a',
+    },
   },
-  buttonFalseTrue: {
-    backgroundColor: '#0AD1BD',
+  buttonTrue: {
+    backgroundColor: '#4cca78',
+    "&:hover": {
+      backgroundColor: '#60d488',
+    },
   },
   buttonIcon: {
     display: 'flex',
