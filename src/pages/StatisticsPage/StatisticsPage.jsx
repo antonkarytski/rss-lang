@@ -235,11 +235,15 @@ const longTermStat = (statistics) => {
 
 const longTermDeltaStat = (statistics) => {
   const longTermStatObj = getLongTermStatObj(statistics);
-  const values = Object.values(longTermStatObj);
   const keys = Object.keys(longTermStatObj);
-  const deltaValuesArr = Object.values(longTermStatObj).map((item, index) => {
-    return index ? (item - values[index-1]) : item;
-  });
+  const deltaValuesArr = Object.values(longTermStatObj).reduce((res, item, index) => {
+    if(index === 0){
+      res.push(Object.values(longTermStatObj)[0]);
+    } else {
+      res.push(res[index-1] + item);
+    }
+    return res;
+  },[]);
   return deltaValuesArr.map((item, index) => ({t: new Date(+keys[index]) , y: item }));
 };
 
@@ -248,7 +252,6 @@ const useStyles = makeStyles((theme) =>
     container: {
       background: '#47d47f',
       padding: '25px',
-      //height: '100vh',
     },
     title: {
       color: '#ffffff',
