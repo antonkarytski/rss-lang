@@ -19,7 +19,7 @@ import {SETTINGS} from "../../../settings";
 import classesCss from "../common/StatisticModal/StatisticModal.module.scss";
 import {getRandomNumber, shuffle} from "../../../helpers/gameUtils";
 import classNames from "classnames";
-import background from "../../../assets/images/29932.jpg";
+import background from "../../../assets/images/photo_2021-04-09_11-20-47.jpg";
 
 const NUMBER_OF_MARKS = 3;
 

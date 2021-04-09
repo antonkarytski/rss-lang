@@ -61,7 +61,7 @@ const Savannah = (props) => {
                 setWordCounter(wordCounter + 1);
               onWordSelect(currentChunk[wordCounter], {failed: true});
             }
-        }, 6000);
+        }, 6800);
 
         return () => {
             clearTimeout(timer);
