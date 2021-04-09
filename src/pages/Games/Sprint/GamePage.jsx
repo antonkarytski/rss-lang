@@ -16,9 +16,7 @@ import parrot2 from "../../../assets/images/parrot2.png";
 import parrot3 from "../../../assets/images/parrot3.png";
 import parrot4 from "../../../assets/images/parrot4.png";
 import {SETTINGS} from "../../../settings";
-import classesCss from "../common/StatisticModal/StatisticModal.module.scss";
 import {getRandomNumber, shuffle} from "../../../helpers/gameUtils";
-import classNames from "classnames";
 import background from "../../../assets/images/photo_2021-04-09_11-20-47.jpg";
 
 const NUMBER_OF_MARKS = 3;
@@ -29,8 +27,8 @@ const MULTIPLIER = {
   1: 10,
   2: 20,
   3: 40,
-  4: 80 
-}
+  4: 80
+};
 
 const Marks = (props) => {
   const { count = 0 } = props;
@@ -113,7 +111,7 @@ const Sprint = (props) => {
   },[]);
 
   const randomTranslation = useMemo(() => {
-      return currentChunk ? setWordTranslation(currentChunk, currentChunk[wordCounter].wordTranslate) : null;
+      return currentChunk && wordCounter !== currentChunk.length ? setWordTranslation(currentChunk, currentChunk[wordCounter].wordTranslate) : null;
   },[currentChunk, wordCounter, setWordTranslation]);
 
   const changeScore = useCallback((correctAnswer, hasCombo) => {
@@ -173,8 +171,8 @@ const Sprint = (props) => {
     playSound(isCorrect, soundOn);
 
     setWordCounter(wordCounter + 1);
-    if (wordCounter === currentChunk.length - 1) {
-      onGameEnd();
+    if (wordCounter === currentChunk.length-1) {
+      onGameEnd(wordCounter);
     }
   },[onWordSelect, changeMark, soundOn, currentTranslation, currentChunk, wordCounter, onGameEnd]);
 
@@ -209,7 +207,7 @@ const Sprint = (props) => {
           <Grid container justify="center" alignItems="center" direction="column" className={classes.gameContainer}>
             <Grid container justify="space-between" className={classes.dataContainer}>
               <Grid container justify="center" alignItems="center" className={classes.timerContainer}>
-                <Timer cycle={60 * 1000} tic={1000} onCountdownFinish={onGameEnd}/>
+                <Timer cycle={60 * 1000} tic={1000} onCountdownFinish={() => onGameEnd(wordCounter-1)}/>
               </Grid>
               <Grid container justify="center" alignItems="center" className={classes.score}>
                 {score}
