@@ -207,7 +207,7 @@ const Sprint = (props) => {
           <Grid container justify="center" alignItems="center" direction="column" className={classes.gameContainer}>
             <Grid container justify="space-between" className={classes.dataContainer}>
               <Grid container justify="center" alignItems="center" className={classes.timerContainer}>
-                <Timer cycle={60 * 1000} tic={1000} onCountdownFinish={() => onGameEnd(wordCounter-1)}/>
+                <Timer cycle={60 * 1000} tic={1000} onCountdownFinish={() => onGameEnd(wordCounter)}/>
               </Grid>
               <Grid container justify="center" alignItems="center" className={classes.score}>
                 {score}
@@ -223,7 +223,7 @@ const Sprint = (props) => {
                   <NotificationsActiveIcon/>
                 </button>
                 <Grid container justify="center" alignItems="center">
-                  <p className={classes.enWord}>{currentChunk[wordCounter].word}</p>
+                  <p className={classes.enWord}>{currentChunk[wordCounter]?.word}</p>
                 </Grid>
                 <Grid container justify="center" alignItems="center">
                   <p className={classes.ruWord}>{randomTranslation}</p>
@@ -264,8 +264,6 @@ const useStyles = makeStyles({
     backgroundSize: 'cover',
     backgroundRepeat: 'no-repeat',
     width: '100vw',
-    // height: '100%',
-    // position: 'relative',
   },
   gameIcons: {
     position: 'absolute',
