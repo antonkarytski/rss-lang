@@ -33,10 +33,12 @@ const MULTIPLIER = {
 const Marks = (props) => {
   const { count = 0 } = props;
 
-  const marks = [
-    ...(new Array(count).fill(true)),
-    ...(new Array(NUMBER_OF_MARKS - count).fill(false))
-  ];
+  const marks = useMemo(() => {
+    return [
+      ...(new Array(count).fill(true)),
+      ...(new Array(NUMBER_OF_MARKS - count).fill(false))
+    ];
+  },[count]);
 
   const classes = useStyles();
 
@@ -161,9 +163,9 @@ const Sprint = (props) => {
 
   const handleClick = useCallback((correctAnswer) => () => {
     const isCorrect = (
-        correctAnswer && currentChunk[wordCounter].wordTranslate === currentTranslation
+        correctAnswer && currentChunk[wordCounter]?.wordTranslate === currentTranslation
       ) || (
-        !correctAnswer && currentChunk[wordCounter].wordTranslate !== currentTranslation
+        !correctAnswer && currentChunk[wordCounter]?.wordTranslate !== currentTranslation
     );
 
     onWordSelect(currentChunk[wordCounter], {succeed: isCorrect, failed: !isCorrect});
@@ -207,7 +209,7 @@ const Sprint = (props) => {
           <Grid container justify="center" alignItems="center" direction="column" className={classes.gameContainer}>
             <Grid container justify="space-between" className={classes.dataContainer}>
               <Grid container justify="center" alignItems="center" className={classes.timerContainer}>
-                <Timer cycle={60 * 1000} tic={1000} onCountdownFinish={() => onGameEnd(wordCounter)}/>
+                <Timer cycle={10 * 1000} tic={1000} onCountdownFinish={() => onGameEnd(wordCounter)}/>
               </Grid>
               <Grid container justify="center" alignItems="center" className={classes.score}>
                 {score}

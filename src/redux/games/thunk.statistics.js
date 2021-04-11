@@ -3,10 +3,9 @@ import {GET_GAME_STATISTICS, SET_GAME_STATISTICS} from "./action-types";
 import {getUserData} from "../../helpers/gameUtils";
 
 const server = "https://rss-words-3.herokuapp.com";
-const token =  getUserData()?.token;
 
 export const addStatisticsThunk = (id, gameStatistics) => (dispatch) => {
-  console.log(gameStatistics)
+  const token =  getUserData()?.token;
   dispatch(setGameStatistics(SET_GAME_STATISTICS.START));
   fetch(`${server}/users/${id}/statistics`, {
     method: "PUT",
@@ -30,6 +29,7 @@ export const addStatisticsThunk = (id, gameStatistics) => (dispatch) => {
 };
 
 export const getStatisticsThunk = (id) => (dispatch) => {
+  const token =  getUserData()?.token;
   dispatch(getGameStatistics(GET_GAME_STATISTICS.START));
   fetch(`${server}/users/${id}/statistics`, {
     method: "GET",
