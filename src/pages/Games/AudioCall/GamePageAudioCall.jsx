@@ -1,18 +1,13 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
-import {getRandomNumber, getUserData, populateStatistics, shuffle} from '../../../helpers/gameUtils';
-import {Grid, makeStyles} from "@material-ui/core";
-import {useDispatch, useSelector} from "react-redux"
-
+import {getRandomNumber,shuffle} from '../../../helpers/gameUtils';
+import {Grid} from "@material-ui/core";
 import classNames from "classnames";
 import { SETTINGS } from "../../../settings";
-import {statisticsSelector} from "../../../redux/games/selectors";
-import Statistics from "../common/Statistics";
 import Lives from "../common/Lives";
 import SoundButton from "../common/SoundButton";
 import correctSound from "../../../assets/audio/correct.mp3";
 import errorSound from "../../../assets/audio/error.mp3";
 import FullScreenButton from "../common/FullScreenButton";
-import {addStatisticsThunk, getStatisticsThunk} from "../../../redux/games/thunk.statistics";
 import classesCss from "./AudioCallGame.module.scss";
 
 
