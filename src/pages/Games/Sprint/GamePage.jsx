@@ -58,10 +58,12 @@ const Marks = (props) => {
 const Parrots = (props) => {
   const { count = 1 } = props;
 
-  const parrots = [
-    ...(new Array(count).fill(true)),
-    ...(new Array(NUMBER_OF_PARROTS - count).fill(false))
-  ];
+  const parrots = useMemo(() => {
+    return [
+      ...(new Array(count).fill(true)),
+      ...(new Array(NUMBER_OF_PARROTS - count).fill(false))
+    ];
+  }, [count]);
 
   const classes = useStyles();
 
@@ -151,7 +153,7 @@ const Sprint = (props) => {
 
   const changeMark = useCallback((correctAnswer) => {
       if (correctAnswer) {
-        const count = marksCombo + 1;
+        let count =  marksCombo === 3 ? 3 : marksCombo + 1;
         setMarksCombo(count);
         if (count >= 3) {
           setTimeout(() => {
