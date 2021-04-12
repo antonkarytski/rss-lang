@@ -1,11 +1,10 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
-import {Grid, makeStyles} from "@material-ui/core";
+import {createStyles, Grid, makeStyles} from "@material-ui/core";
 import SoundButton from "../common/SoundButton";
 import correctSound from "../../../assets/audio/correct.mp3";
 import errorSound from "../../../assets/audio/error.mp3";
 import FullScreenButton from "../common/FullScreenButton";
 import Button from "../common/Button";
-import Timer from "../common/Timer";
 import ArrowLeftIcon from "@material-ui/icons/ArrowLeft";
 import ArrowRightIcon from "@material-ui/icons/ArrowRight";
 import NotificationsActiveIcon from "@material-ui/icons/NotificationsActive";
@@ -18,6 +17,8 @@ import parrot4 from "../../../assets/images/parrot4.png";
 import {SETTINGS} from "../../../settings";
 import {getRandomNumber, shuffle} from "../../../helpers/gameUtils";
 import background from "../../../assets/images/photo_2021-04-09_11-20-47.jpg";
+import classNames from "classnames";
+import Timer from "./Timer";
 
 const NUMBER_OF_MARKS = 3;
 
@@ -69,7 +70,12 @@ const Parrots = (props) => {
   return (
     <Grid container justify="center" alignItems="center" className={classes.parrotsContainer}>
       {parrots.map((isVisible, index) => (
-          <img key={index} src={parrotsSrc[index]} alt="parrot" className={isVisible ? "" : classes.hidden} />
+          <img key={index} src={parrotsSrc[index]} alt="parrot"
+               className={classNames({
+                 [classes.hidden]: !isVisible,
+                 [classes.parrot]: isVisible,
+               })}
+          />
       ))}
       <img src={branch} alt="branch" className={classes.branch}/>
     </Grid>
@@ -209,7 +215,7 @@ const Sprint = (props) => {
           <Grid container justify="center" alignItems="center" direction="column" className={classes.gameContainer}>
             <Grid container justify="space-between" className={classes.dataContainer}>
               <Grid container justify="center" alignItems="center" className={classes.timerContainer}>
-                <Timer cycle={10 * 1000} tic={1000} onCountdownFinish={() => onGameEnd(wordCounter)}/>
+                <Timer isActive={true} initialTime={60} onCountdownFinish={() => onGameEnd(wordCounter)} />
               </Grid>
               <Grid container justify="center" alignItems="center" className={classes.score}>
                 {score}
@@ -258,7 +264,8 @@ const playSound = (isCorrect, soundOn) => {
   }
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) =>
+  createStyles({
   container: {
     height: '100vh',
     position: 'relative',
@@ -272,10 +279,19 @@ const useStyles = makeStyles({
     top: '15px',
   },
   dataContainer: {
+    [theme.breakpoints.down("sm")]: {
+      maxWidth: '250px',
+    },
+    [theme.breakpoints.down("xs")]: {
+      maxWidth: '180px',
+    },
     maxWidth: '600px',
     marginBottom: '5px',
   },
   timerContainer: {
+    [theme.breakpoints.down("xs")]: {
+      fontSize: '30px',
+    },
     fontSize: '45px',
     lineHeight: '40px',
     textAlign: 'center',
@@ -287,6 +303,9 @@ const useStyles = makeStyles({
     padding: '10px',
   },
   score: {
+    [theme.breakpoints.down("xs")]: {
+      fontSize: '30px',
+    },
     fontSize: '45px',
     lineHeight: '40px',
     textAlign: 'center',
@@ -297,6 +316,12 @@ const useStyles = makeStyles({
   },
   gameContainer: {},
   game: {
+    [theme.breakpoints.down("sm")]: {
+      maxWidth: '500px',
+    },
+    [theme.breakpoints.down("xs")]: {
+      maxWidth: '400px',
+    },
     height: '450px',
     maxWidth: '600px',
     background: 'rgb(80 80 80 / 65%)',
@@ -331,6 +356,9 @@ const useStyles = makeStyles({
   parrotsContainer: {
     position: 'relative',
   },
+  parrot: {
+    animation: `$bubble 0.3s linear`,
+  },
   hidden: {
     visibility: 'hidden',
   },
@@ -341,7 +369,14 @@ const useStyles = makeStyles({
     width: '270px',
     height: '150px',
   },
-  buttonsContainer: {},
+  buttonsContainer: {
+    "& button": {
+      [theme.breakpoints.down("xs")]: {
+        width: '120px',
+        height: '35px',
+      },
+    }
+  },
   buttonFalse: {
     backgroundColor: '#e79666',
     flexDirection: 'row-reverse',
@@ -365,7 +400,39 @@ const useStyles = makeStyles({
       color: '#ffffff',
     }
   },
-});
+  '@keyframes bubble': {
+    '0%': {
+      transform: 'scale(0.5)',
+    },
+    '30%': {
+      transform: 'scale(0.7)',
+    },
+    '70%': {
+      transform: 'scale(0.9)',
+    },
+    '100%': {
+      transform: 'scale(1)',
+    }
+  },
+  '@keyframes bubbleBack': {
+    '0%': {
+      transform: 'scale(1)',
+    },
+    '30%': {
+      transform: 'scale(0.9)',
+    },
+    '70%': {
+      transform: 'scale(0.7)',
+    },
+    '85%': {
+      transform: 'scale(0.5)',
+    },
+    '100%': {
+      transform: 'scale(0.2)',
+    }
+  },
+  }),
+);
 
 export default Sprint;
 

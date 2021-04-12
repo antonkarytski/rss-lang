@@ -63,7 +63,7 @@ export default function App() {
           </GameShell>
         </Route>
         <Route path={getGamePath("sprint")}>
-          <GameShell gameData={GAMES.sprint} randomLengthStack={10}>
+          <GameShell gameData={GAMES.sprint} randomLengthStack={60}>
             <Sprint />
           </GameShell>
         </Route>

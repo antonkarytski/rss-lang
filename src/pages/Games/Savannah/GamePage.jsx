@@ -1,6 +1,6 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import {getRandomNumber, shuffle} from '../../../helpers/gameUtils';
-import {Grid, makeStyles} from "@material-ui/core";
+import {createStyles, Grid, makeStyles} from "@material-ui/core";
 import snake from "../../../assets/images/snake.svg"
 import classNames from "classnames";
 import background from "../../../assets/images/2.jpg";
@@ -187,7 +187,8 @@ const playSound = (isCorrect, soundOn) => {
     }
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) =>
+  createStyles({
     container: {
         height: '100vh',
         position: 'relative',
@@ -225,6 +226,10 @@ const useStyles = makeStyles({
         top: '50%',
     },
     wordButton: {
+        [theme.breakpoints.down("xs")]: {
+          height: '90px',
+          width: '90px',
+        },
         position: 'relative',
         display: 'inline-block',
         height: '120px',
@@ -323,7 +328,8 @@ const useStyles = makeStyles({
             transform: 'scale(1)',
         }
     }
-});
+  }),
+);
 
 export default Savannah;
 
